@@ -1,0 +1,214 @@
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<style>
+html, body { background-color: white; }
+table { border-collapse:collapse; border:none; }
+caption { font-weight: bold; text-align:left; }
+td {  }
+.thead { border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; }
+.tdata { padding:0.2cm; text-align:left; vertical-align:top; }
+.arc { background-color:#f2f2f2; }
+.summary { padding-top:0.1cm; padding-bottom:0.1cm; }
+.summarydata { text-align:center; }
+.fixedparts { font-weight:bold; text-align:left; }
+.randomparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.zeroparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.simplexparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.lasttablerow { border-bottom: double; }
+.firsttablerow { border-bottom:1px solid black; }
+.firstsumrow { border-top:1px solid; }
+.labelcellborder { border-bottom:1px solid; }
+.depvarhead { text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; }
+.depvarheadnodv { border-top: double; text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; }
+.leftalign { text-align:left; }
+.centeralign { text-align:center; }
+.firsttablecol { text-align:left; }
+.footnote { font-style:italic; border-top:double black; text-align:right; }
+.subtitle { font-weight: normal; }
+.modelcolumn1 {  }
+.modelcolumn2 {  }
+.modelcolumn3 {  }
+.modelcolumn4 {  }
+.modelcolumn5 {  }
+.modelcolumn6 {  }
+.modelcolumn7 {  }
+.col1 {  }
+.col2 {  }
+.col3 {  }
+.col4 {  }
+.col5 {  }
+.col6 {  }
+</style>
+</head>
+<body>
+<table>
+  <caption>Table S2 (top): reliability, Study 1. Cronbach's alpha with Feldt 95% intervals.</caption>
+  <tr>
+    <th class="thead firsttablerow firsttablecol col1">Dataset</th>
+    <th class="thead firsttablerow col2">N</th>
+    <th class="thead firsttablerow col3">CM items</th>
+    <th class="thead firsttablerow col4">Alpha (CM) [95% CI]</th>
+    <th class="thead firsttablerow col5">CB items</th>
+    <th class="thead firsttablerow col6">Alpha (CB) [95% CI]</th>
+  </tr>
+  <tr>
+    <td class="tdata firsttablecol col1">DEU</td>
+    <td class="tdata centeralign col2">2509</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.83 [0.82, 0.84]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.94 [0.94, 0.95]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">ESP</td>
+    <td class="tdata centeralign col2">2516</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.80 [0.79, 0.82]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.93 [0.92, 0.93]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">FRA</td>
+    <td class="tdata centeralign col2">2503</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.82 [0.81, 0.83]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.93 [0.93, 0.94]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">GBR</td>
+    <td class="tdata centeralign col2">2503</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.80 [0.79, 0.81]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.94 [0.93, 0.94]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">ITA</td>
+    <td class="tdata centeralign col2">2501</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.82 [0.81, 0.83]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.94 [0.93, 0.94]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">POL</td>
+    <td class="tdata centeralign col2">2515</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.80 [0.79, 0.81]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.93 [0.93, 0.94]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">SWE</td>
+    <td class="tdata centeralign col2">2504</td>
+    <td class="tdata centeralign col3">5</td>
+    <td class="tdata centeralign col4">0.83 [0.82, 0.84]</td>
+    <td class="tdata centeralign col5">8</td>
+    <td class="tdata centeralign col6">0.94 [0.94, 0.95]</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol lasttablerow col1">USA</td>
+    <td class="tdata centeralign lasttablerow col2">2500</td>
+    <td class="tdata centeralign lasttablerow col3">5</td>
+    <td class="tdata centeralign lasttablerow col4">0.82 [0.81, 0.83]</td>
+    <td class="tdata centeralign lasttablerow col5">8</td>
+    <td class="tdata centeralign lasttablerow col6">0.94 [0.94, 0.94]</td>
+</tr>
+</table>
+<p>&nbsp;</p><table>
+  <caption>Table S2 (bottom): fit of the two-factor model, Study 1. RMSEA with its 90% interval.</caption>
+  <tr>
+    <th class="thead firsttablerow firsttablecol col1">Dataset</th>
+    <th class="thead firsttablerow col2">Chi square</th>
+    <th class="thead firsttablerow col3">p</th>
+    <th class="thead firsttablerow col4">CFI</th>
+    <th class="thead firsttablerow col5">TLI</th>
+    <th class="thead firsttablerow col6">RMSEA [90% CI]</th>
+    <th class="thead firsttablerow col7">SRMR</th>
+    <th class="thead firsttablerow col8">BIC</th>
+  </tr>
+  <tr>
+    <td class="tdata firsttablecol col1">DEU</td>
+    <td class="tdata centeralign col2">465.40</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.98</td>
+    <td class="tdata centeralign col5">0.98</td>
+    <td class="tdata centeralign col6">0.05 [0.046, 0.054]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">86765.58</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">ESP</td>
+    <td class="tdata centeralign col2">341.97</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.98</td>
+    <td class="tdata centeralign col5">0.98</td>
+    <td class="tdata centeralign col6">0.04 [0.037, 0.046]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">89918.79</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">FRA</td>
+    <td class="tdata centeralign col2">448.48</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.98</td>
+    <td class="tdata centeralign col5">0.98</td>
+    <td class="tdata centeralign col6">0.05 [0.045, 0.053]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">88763.20</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">GBR</td>
+    <td class="tdata centeralign col2">343.42</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.99</td>
+    <td class="tdata centeralign col5">0.98</td>
+    <td class="tdata centeralign col6">0.04 [0.037, 0.046]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">86368.98</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">ITA</td>
+    <td class="tdata centeralign col2">464.67</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.98</td>
+    <td class="tdata centeralign col5">0.98</td>
+    <td class="tdata centeralign col6">0.05 [0.046, 0.054]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">87510.92</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">POL</td>
+    <td class="tdata centeralign col2">361.07</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.98</td>
+    <td class="tdata centeralign col5">0.98</td>
+    <td class="tdata centeralign col6">0.04 [0.039, 0.047]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">88560.71</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">SWE</td>
+    <td class="tdata centeralign col2">513.74</td>
+    <td class="tdata centeralign col3"><.001</td>
+    <td class="tdata centeralign col4">0.98</td>
+    <td class="tdata centeralign col5">0.97</td>
+    <td class="tdata centeralign col6">0.05 [0.049, 0.057]</td>
+    <td class="tdata centeralign col7">0.03</td>
+    <td class="tdata centeralign col8">85628.15</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol lasttablerow col1">USA</td>
+    <td class="tdata centeralign lasttablerow col2">245.23</td>
+    <td class="tdata centeralign lasttablerow col3"><.001</td>
+    <td class="tdata centeralign lasttablerow col4">0.99</td>
+    <td class="tdata centeralign lasttablerow col5">0.99</td>
+    <td class="tdata centeralign lasttablerow col6">0.03 [0.029, 0.038]</td>
+    <td class="tdata centeralign lasttablerow col7">0.02</td>
+    <td class="tdata centeralign lasttablerow col8">90003.25</td>
+</tr>
+</table>
+
+</body></html>

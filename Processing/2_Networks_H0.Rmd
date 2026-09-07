@@ -1,0 +1,695 @@
+---
+title: "2 - Networks, H0"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+# Input
+
+```{r}
+#Libraries
+library(pacman)
+p_load(lavaan, rio, tidyverse, psych, here, stargazer, summarytools, visdat,
+       EGAnet, qgraph, ggplot2, haven, janitor, readxl, labelled, reshape2,
+       openxlsx, mgm, bootnet, conflicted, magick, cocron, lme4, broom.mixed,
+       patchwork, knitr, kableExtra, sjPlot, lavaan)
+
+#Options
+rm(list = ls())
+options(scipen = 999)
+#conflicts
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+
+# Data
+# master_datasets.rds is built by script 1 and is included in this repository, so this script
+# runs as-is. The raw Study 2 and Study 3 files that script 1 starts from are not redistributed
+# here: see the note at the top of 1_Data_Managment.Rmd, or "Data sources" in the README,
+# for how to download them from the Harvard Dataverse.
+master_datasets <- readRDS(here("Input", "Secondary", "master_datasets.rds"))
+```
+
+# Processing
+
+## H0: CB and GCB are different constructs
+
+### EGA
+
+```{r}
+# Initialize objects for EGA
+
+# an empty list to hold the matrices for every country across all studies
+H0_matrices <- list()
+
+# Loop through the master list to extract and split data 
+for (study_name in names(master_datasets)) {
+  
+  # Extract the dataset
+  df <- master_datasets[[study_name]]
+  
+  # Keep only country, cm_, and cb_ items, then drop NAs
+  df_clean <- df %>%
+    select(country, starts_with("cm_"), starts_with("cb_")) %>%
+    na.omit()
+  
+  # Split by country
+  split_df <- split(df_clean[, setdiff(names(df_clean), "country")], df_clean$country)
+  
+  # Convert to matrices and assign unique names 
+  for (country_name in names(split_df)) {
+    list_name <- paste0(study_name, "_", country_name)
+    H0_matrices[[list_name]] <- as.matrix(split_df[[country_name]])
+  }
+}
+```
+
+
+```{r}
+# Fit EGA dynamically
+
+# Initialize lists for results
+EGA_results <- list()
+Totalgroup_comm_EGA <- list()
+
+for (name in names(H0_matrices)) {
+  
+  # Access data matrix
+  data_matrix <- H0_matrices[[name]]
+  
+  # Fit EGA 
+  ega_result <- EGA(data_matrix, plot.EGA = FALSE)
+  
+  # Store result
+  EGA_results[[name]] <- ega_result
+  
+  # Extract the empirical communities found by EGA
+  wc_result <- ega_result$wc
+  
+  # Dynamically build a list of node indices for each discovered dimension
+  emp_groups <- list()
+  for (dim in unique(wc_result)) {
+    # Find the numeric indices of nodes belonging to this specific dimension
+    emp_groups[[paste("Dimension", dim)]] <- which(wc_result == dim)
+  }
+  
+  # Store the true empirical groups to feed to qgraph
+  Totalgroup_comm_EGA[[name]] <- emp_groups
+}
+
+# Print the names of all the networks 
+names(EGA_results)
+```
+
+```{r}
+# Estimate MGM and Plot
+
+# ONE ESTIMATOR FOR THE WHOLE PAPER.
+# Every network in this paper, drawn or analysed, is estimated with mgm() under EBIC
+# (lambdaGam = 0.25) and the AND rule. These are exactly the settings bootnet(default = "mgm")
+# applies internally, so the pictures below show the same networks the Strength estimates,
+# the bootstrap intervals and the difference tests are computed on. Script 6 re-runs the
+# H1 and H2 analyses under cross-validation, with the AND and then the OR rule. Ranks are
+# identical in all 34 networks and verdicts in 32 of 34; the German and British H1 networks
+# move from falsified to inconclusive, which Section 5.5 reports.
+# The seed is kept for the layout algorithm rather than for the fit: EBIC selection is
+# deterministic, but qgraph's spring placement is not.
+set.seed(123)
+
+# Expanded color palette (backups just in case EGA finds 3+ dimensions)
+Totalgroup_cols_H0 <- c("#966FD6", "#006B3C", "#FFB347", "#FF6961", "#AEC6CF", "#B39EB5") 
+
+for (name in names(H0_matrices)) {
+  
+  # Access data
+  data_matrix <- H0_matrices[[name]]
+  n_vars <- ncol(data_matrix)
+  node_names <- colnames(data_matrix)
+  
+  # Dynamically generate type and level parameters for mgm
+  type_vec <- rep("g", n_vars)
+  level_vec <- rep(1, n_vars)
+  
+  # Network estimation
+  mgm_result <- mgm(
+    data_matrix, type = type_vec, level = level_vec,
+    lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND", verbose = FALSE, pbar = FALSE
+  )
+  
+  # Predictability (R2 pie charts)
+  pred_result <- predict(object = mgm_result, data = data_matrix, errorCon = 'R2')
+  
+  # Retrieve the groups 
+  groups_EGA <- Totalgroup_comm_EGA[[name]]
+  
+  # colors
+  current_colors <- Totalgroup_cols_H0[1:length(groups_EGA)]
+  
+  # output path
+  output_path <- here("Output", "H0", "Country_networks", paste0(name, ".png"))
+  
+  # png
+  png(output_path, width = 4.15, height = 5.85, units = "in", res = 600)
+  
+  # Generate the qgraph plot
+  qgraph(
+    mgm_result$pairwise$wadj, 
+    layout = "spring",            
+    labels = node_names,
+    groups = groups_EGA,  
+    color = current_colors, 
+    legend = FALSE,
+    title = name, 
+    edge.color = mgm_result$pairwise$edgecolor_cb,
+    vTrans = 180, borders = TRUE, vsize = 10, esize = 7, label.cex = 0.50,
+    label.scale = FALSE, 
+    pie = pred_result$errors[,2], 
+    pieColor = rep('#FFFF00', n_vars)
+  )
+  
+  dev.off()
+}
+```
+
+```{r}
+#Generate final figures for the Supplement
+
+# Directories
+input_dir <- here("Output", "H0", "Country_networks")
+output_dir <- here("Output", "H0", "Composite_Figures")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Fetch all PNGs 
+all_pngs <- list.files(input_dir, pattern = "\\.png$", full.names = TRUE)
+
+# STUDY 1: 8 Countries 
+study1_files <- all_pngs[grepl("Study1", all_pngs)]
+if (length(study1_files) == 8) {
+  cat("Found 8 files for Study 1. Splitting into A and B...\n")
+  
+  imgs_1a <- lapply(study1_files[1:4], image_read)
+  imgs_1b <- lapply(study1_files[5:8], image_read)
+  
+  comp_1a <- image_montage(image_join(imgs_1a), tile = "2x2", geometry = "+50+50")
+  comp_1b <- image_montage(image_join(imgs_1b), tile = "2x2", geometry = "+50+50")
+  
+  image_write(comp_1a, path = here(output_dir, "H0_Study1_Composite_A.png"), format = "png")
+  image_write(comp_1b, path = here(output_dir, "H0_Study1_Composite_B.png"), format = "png")
+}
+
+# STUDY 2: 1 country unchanged 
+study2_files <- all_pngs[grepl("Study2", all_pngs)]
+if (length(study2_files) == 1) {
+  cat("Found 1 file for Study 2. Copying...\n")
+  file.copy(from = study2_files[1], to = here(output_dir, "H0_Study2_Composite.png"), overwrite = TRUE)
+}
+
+# STUDY 3 (CMQ): 8 Countries 
+study3_cmq_files <- all_pngs[grepl("Study3_CMQ", all_pngs)]
+if (length(study3_cmq_files) == 8) {
+  cat("Found 8 files for Study 3 CMQ. Splitting into A and B...\n")
+  
+  imgs_3a_cmq <- lapply(study3_cmq_files[1:4], image_read)
+  imgs_3b_cmq <- lapply(study3_cmq_files[5:8], image_read)
+  
+  comp_3a_cmq <- image_montage(image_join(imgs_3a_cmq), tile = "2x2", geometry = "+50+50")
+  comp_3b_cmq <- image_montage(image_join(imgs_3b_cmq), tile = "2x2", geometry = "+50+50")
+  
+  image_write(comp_3a_cmq, path = here(output_dir, "H0_Study3_CMQ_Composite_A.png"), format = "png")
+  image_write(comp_3b_cmq, path = here(output_dir, "H0_Study3_CMQ_Composite_B.png"), format = "png")
+}
+
+
+```
+
+
+### CFA of EGA (two dimensions)
+
+```{r}
+# Initialize lists
+CFA <- list()
+CFA_stats_list <- list()
+
+for (name in names(H0_matrices)) {
+  
+  data_matrix <- as.data.frame(H0_matrices[[name]])
+  var_names <- colnames(data_matrix)
+  
+  # isolate CB and CM items 
+  factor_1_vars <- var_names[grepl("^cb_", var_names)]
+  factor_2_vars <- var_names[grepl("^cm_", var_names)]
+  
+  # Build the 2-factor CFA model dynamically
+  model <- paste0(
+    "Factor1_CB =~ ", paste(factor_1_vars, collapse = " + "), "\n",
+    "Factor2_CM =~ ", paste(factor_2_vars, collapse = " + ")
+  )
+  
+  # Fit CFA 
+  cfa_result <- tryCatch(
+    cfa(model, data = data_matrix, std.lv = TRUE),
+    error = function(e) {
+      warning(paste("CFA failed for", name, ":", e$message))
+      return(NULL)
+    }
+  )
+  
+  # Store model and extract stats 
+  if (!is.null(cfa_result)) {
+    CFA[[name]] <- cfa_result
+    
+    fit_measures <- fitMeasures(cfa_result)
+    CFA_stats_list[[name]] <- data.frame(
+      Dataset = name,
+      Chi_Square = fit_measures["chisq"],
+      P_Value = fit_measures["pvalue"],
+      CFI = fit_measures["cfi"],
+      TLI = fit_measures["tli"],
+      RMSEA = fit_measures["rmsea"],
+      SRMR = fit_measures["srmr"],
+      BIC = fit_measures["bic"],
+      stringsAsFactors = FALSE
+    )
+  }
+}
+
+# Combine stats 
+CFA_stats_df <- do.call(rbind, CFA_stats_list)
+rownames(CFA_stats_df) <- NULL
+
+# Save 
+output_doc_path <- here("Output", "H0", "CFA_Fit_Stats_Master.doc")
+sjPlot::tab_df(CFA_stats_df, file = output_doc_path)
+# csv as well, so script 8 can assemble Tables S2, S5 and S8 without re-reading a .doc
+write.csv(CFA_stats_df, here("Output", "H0", "CFA_Fit_Stats_Master.csv"), row.names = FALSE)
+
+```
+
+
+### Alphas
+
+```{r}
+# Initialize a list 
+alpha_stats_list <- list()
+
+# Loop over the H0_matrices 
+for (name in names(H0_matrices)) {
+  
+  # Access the numeric dataframe
+  data_matrix <- as.data.frame(H0_matrices[[name]])
+  var_names <- colnames(data_matrix)
+  
+  # Isolate CM and CB items 
+  cm_vars <- data_matrix[, grepl("^cm_", var_names), drop = FALSE]
+  cb_vars <- data_matrix[, grepl("^cb_", var_names), drop = FALSE]
+  
+  # Calculate Alphas for CM 
+  cm_alpha <- tryCatch(
+    psych::alpha(cm_vars)$total$raw_alpha,
+    warning = function(w) psych::alpha(cm_vars, check.keys = TRUE)$total$raw_alpha,
+    error = function(e) NA
+  )
+  
+  # Calculate Alpha for CB
+  cb_alpha <- tryCatch(
+    psych::alpha(cb_vars)$total$raw_alpha,
+    warning = function(w) psych::alpha(cb_vars, check.keys = TRUE)$total$raw_alpha,
+    error = function(e) NA
+  )
+  
+  # Store the results
+  alpha_stats_list[[name]] <- data.frame(
+    Dataset = name,
+    CM_Items = ncol(cm_vars),
+    Alpha_CM = round(cm_alpha, 3),
+    CB_Items = ncol(cb_vars),
+    Alpha_CB = round(cb_alpha, 3),
+    stringsAsFactors = FALSE
+  )
+}
+
+# Combine 
+Alpha_stats_df <- do.call(rbind, alpha_stats_list)
+rownames(Alpha_stats_df) <- NULL
+
+# Save the table locally as a .doc file
+output_alpha_path <- here("Output", "H0", "Alpha_Reliability_Master.doc")
+sjPlot::tab_df(Alpha_stats_df, file = output_alpha_path)
+write.csv(Alpha_stats_df, here("Output", "H0", "Alpha_Reliability_Master.csv"), row.names = FALSE)
+
+```
+
+### Interval estimates for alpha and RMSEA
+
+```{r}
+# Alpha and the fit indices are descriptive rather than effect sizes, but it costs nothing
+# to report intervals for them, so here I compute the Feldt 95% CI for each alpha and the
+# usual 90% CI for RMSEA (the interval lavaan reports and the one APA expects).
+# These are the intervals shown in Tables S2, S5 and S8 of the Supplement.
+
+ci_stats_list <- list()
+
+for (name in names(H0_matrices)) {
+
+  data_matrix <- as.data.frame(H0_matrices[[name]])
+  var_names <- colnames(data_matrix)
+
+  cm_vars <- data_matrix[, grepl("^cm_", var_names), drop = FALSE]
+  cb_vars <- data_matrix[, grepl("^cb_", var_names), drop = FALSE]
+
+  alpha_cm <- suppressWarnings(psych::alpha(cm_vars))
+  alpha_cb <- suppressWarnings(psych::alpha(cb_vars))
+
+  # RMSEA interval from the same two-factor CFA fitted above
+  rmsea_ci <- c(NA, NA, NA)
+  if (!is.null(CFA[[name]])) {
+    rmsea_ci <- fitMeasures(CFA[[name]],
+                            c("rmsea", "rmsea.ci.lower", "rmsea.ci.upper"))
+  }
+
+  # unname() matters here: psych and lavaan return named numerics, and data.frame()
+  # would otherwise overwrite my column names with theirs.
+  ci_stats_list[[name]] <- data.frame(
+    Dataset      = name,
+    N            = nrow(data_matrix),
+    Alpha_CM     = round(unname(alpha_cm$total$raw_alpha), 3),
+    Alpha_CM_LCI = round(unname(alpha_cm$feldt$lower.ci), 3),
+    Alpha_CM_UCI = round(unname(alpha_cm$feldt$upper.ci), 3),
+    Alpha_CB     = round(unname(alpha_cb$total$raw_alpha), 3),
+    Alpha_CB_LCI = round(unname(alpha_cb$feldt$lower.ci), 3),
+    Alpha_CB_UCI = round(unname(alpha_cb$feldt$upper.ci), 3),
+    RMSEA        = round(unname(rmsea_ci[1]), 3),
+    RMSEA_LCI    = round(unname(rmsea_ci[2]), 3),
+    RMSEA_UCI    = round(unname(rmsea_ci[3]), 3),
+    stringsAsFactors = FALSE
+  )
+}
+
+CI_stats_df <- do.call(rbind, ci_stats_list)
+rownames(CI_stats_df) <- NULL
+
+# Save both a csv (to paste into the Supplement) and a doc
+write.csv(CI_stats_df, here("Output", "H0", "Alpha_RMSEA_CIs.csv"), row.names = FALSE)
+sjPlot::tab_df(CI_stats_df,
+               title = "Reliability and RMSEA with interval estimates",
+               file = here("Output", "H0", "Alpha_RMSEA_CIs.doc"))
+
+CI_stats_df
+```
+## Tabs with wording
+
+```{r}
+# Study 1 
+
+study1_wording <- tribble(
+  ~Scale, ~Item, ~Wording,
+  "COMP-CB", "cb_1", "Governments and the nuclear industry are intentionally poisoning the public with radioactive food",
+  "COMP-CB", "cb_2", "AIDS was created by the CIA and deliberately spread by the WHO via polio inoculations in Africa to try to reduce the world population",
+  "COMP-CB", "cb_3", "The United States Department of Defense (DOD) is experimenting with ELF (Extremely Low Frequency) devices to control people's minds",
+  "COMP-CB", "cb_4", "The vaporous contrails left by commercial jets flying through cold air pockets are actually chemtrails which disperse harmful chemical-biological agents",
+  "COMP-CB", "cb_5", "The United Nations secret aim is to eliminate and invade sovereign nations with 'peacekeeper' troops to create a World Government",
+  "COMP-CB", "cb_6", "The world is secretly ruled by the extremely powerful bankers Rothschild family.",
+  "COMP-CB", "cb_7", "Monsanto Company is secretly maneuvering to control the world's food supply using GMOs",
+  "COMP-CB", "cb_8", "The 2014 Ebola epidemic was deliberately contrived by Big Pharma in order to make profits",
+  "GCB-5 (CM)", "cm_1", "States allow/commit acts of terrorism on their soil, concealing their involvement",
+  "GCB-5 (CM)", "cm_2", "Evidence of contact with aliens is hidden from the public",
+  "GCB-5 (CM)", "cm_3", "Many advanced technologies that would damage today's big industry are hidden",
+  "GCB-5 (CM)", "cm_4", "A small group secretly manipulates world events",
+  "GCB-5 (CM)", "cm_5", "New drugs or technologies being conducted on citizens without their knowledge"
+)
+
+# Study 2 
+study2_wording <- tribble(
+  ~Scale, ~Item, ~Wording,
+  "ACTS (CM)", "cm_1", "Even though we live in a democracy, a few people will always run things anyway.",
+  "ACTS (CM)", "cm_2", "The people who really run the country are not known to the voters.",
+  "ACTS (CM)", "cm_3", "Big events like wars, the current recession, and the outcomes of elections are controlled by small groups of people who are working in secret against the rest of us.",
+  "ACTS (CM)", "cm_4", "Much of our lives are being controlled by plots hatched in secret places.",
+  "CB", "cb_1", "Jeffrey Epstein, the billionaire accused of running an elite sex trafficking ring, was murdered to cover-up the activities of his criminal network.",
+  "CB", "cb_2", "The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.",
+  "CB", "cb_3", "The Food and Drug Administration is deliberately preventing the public from getting natural cures for cancer and other diseases because of pressure from drug companies.",
+  "CB", "cb_4", "Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.",
+  "CB", "cb_5", "Bill Gates is behind the coronavirus pandemic.",
+  "CB", "cb_6", "Health officials know that cell phones cause cancer but are doing nothing to stop it because large corporations won't let them."
+)
+
+
+# Study 3 Table A (Mentality Scales)
+study3_cm_wording <- tribble(
+  ~Scale, ~Item, ~Wording,
+  "CMQ5", "cm_1", "Many very important things happen in the world, which the public is never informed about.",
+  "CMQ5", "cm_2", "Politicians usually do not tell us the true motives for their decisions.",
+  "CMQ5", "cm_3", "Government agencies closely monitor all citizens.",
+  "CMQ5", "cm_4", "Events which superficially seem to lack a connection are often the result of secret activities",
+  "CMQ5", "cm_5", "There are secret organizations that greatly influence political decisions."
+)
+
+# 4. Study 3 Table B (Specific Beliefs per Country)
+study3_cb_wording <- tribble(
+  ~Country, ~`Item 1`, ~`Item 2`, ~`Item 3`, ~`Item 4`,
+  "Canada", "Liberals and environmental actors are working together to destroy Alberta’s oil sands for financial benefit.", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "Liberal media are paid actors working for Prime Minister Justin Trudeau.", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.",
+  "United States", "The US government had something to do with the attacks of 9/11.", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "Joe Biden did not legitimately win the 2020 US Presidential Election.", "There is more to the assassination of President John F. Kennedy than what has been shared with the public.",
+  "Germany", "The Jewish population was responsible for starting World War II, not the Nazi party of Germany.", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "Hitler did not die in 1945, but rather, lived into his old age.", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.",
+  "Australia", "The Chinese government had something to do with the disappearance of Prime Minister Harold Holt", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "Pedophilic Satan-worshiping elites are trying to control our media and politics", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.",
+  "South Africa", "AIDS was created by white people to kill Black people.", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "Birth control and condoms were created to control the Black population and should not be used.", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.",
+  "Morocco", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.", "Climate change is a hoax and scientists touting its existence are lying.", "The pharmaceutical industry has orchestrated the spread of the Sars-Cov-2 and Monkeypox viruses for its own financial benefit.",
+  "Lebanon", "The Beirut explosion was not an accident.", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "The assassination of Rafic Hariri is related to the Beirut explosion.", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.",
+  "Brazil", "The 2022 Election was fraudulent, and Jair Bolsonaro is the true winner.", "Bill Gates and George Soros are responsible for the onset of the Covid-19 pandemic.", "The pandemic is being used by a small group of elites to swap capitalism for communism in liberal democracies.", "Climate change is a hoax and scientists touting its existence are lying."
+)
+
+#Save
+
+# Define and create the output directory for your supplement tables
+output_dir_tables <- here("Output", "Wording")
+
+# File names follow the numbering of the final Supplement: wording tables are S1 (Study 1),
+# S3 (Study 2) and S6 (Study 3, mentality on top and country-specific beliefs below).
+# The old names (S2, S3a, S3b) referred to an earlier draft and did not match the Supplement.
+
+# Study 1
+tab_df(
+  study1_wording,
+  title = "Study 1: Item Wordings for Conspiracy Beliefs and Mentality",
+  file = here(output_dir_tables, "Table_S1_Wording_Study1.doc")
+)
+
+# 2
+tab_df(
+  study2_wording,
+  title = "Study 2: Item Wordings for Conspiracy Beliefs and Mentality",
+  file = here(output_dir_tables, "Table_S3_Wording_Study2.doc")
+)
+
+# Study 3 Mentality
+tab_df(
+  study3_cm_wording,
+  title = "Study 3: Mentality Scale (CMQ-5)",
+  file = here(output_dir_tables, "Table_S6a_Wording_Study3_Mentality.doc")
+)
+
+# Study 3 CBs
+tab_df(
+  study3_cb_wording,
+  title = "Study 3: Country-Specific Conspiracy Beliefs",
+  file = here(output_dir_tables, "Table_S6b_Wording_Study3_SpecificBeliefs.doc")
+)
+
+# Table S6 of the Supplement is one table with two panels, mentality on top and the
+# country-specific beliefs below, so it is also written as a single file under that name.
+# tab_dfs() ignores its own `file` argument in this version of sjPlot, so the HTML it
+# returns is written here instead.
+s6 <- tab_dfs(
+  list(study3_cm_wording, study3_cb_wording),
+  titles = c("Table S6 (top): mentality scale (CMQ-5)",
+             "Table S6 (bottom): country-specific conspiracy beliefs")
+)
+writeLines(s6$page.complete,
+           con = file(here(output_dir_tables, "Table_S6_Wording_Study3.doc"),
+                      encoding = "UTF-8"))
+
+```
+
+## Robustness checks
+
+### Study 2 
+
+```{r}
+# Study 2 data
+study2_name <- names(H0_matrices)[grepl("Study2", names(H0_matrices))]
+study2_data <- as.data.frame(H0_matrices[[study2_name]])
+var_names <- colnames(study2_data)
+
+# take the items
+cm_vars <- var_names[grepl("^cm_", var_names)]
+cb_vars <- var_names[grepl("^cb_", var_names)]
+
+# 1-Factor Model (EGA's suggestion)
+model_1f <- paste0(
+  "General_Factor =~ ", paste(c(cm_vars, cb_vars), collapse = " + ")
+)
+
+# 2-Factor Model (based on theory)
+model_2f <- paste0(
+  "Factor_CM =~ ", paste(cm_vars, collapse = " + "), "\n",
+  "Factor_CB =~ ", paste(cb_vars, collapse = " + ")
+)
+
+# Fit both models
+fit_1f <- cfa(model_1f, data = study2_data, std.lv = TRUE)
+fit_2f <- cfa(model_2f, data = study2_data, std.lv = TRUE)
+
+# ANOVA Chi-Square Difference Test
+model_comp <- anova(fit_1f, fit_2f)
+chi_diff <- round(model_comp$`Chisq diff`[2], 2)
+df_diff <- model_comp$`Df diff`[2]
+p_diff <- model_comp$`Pr(>Chisq)`[2]
+
+# Formulate the significance string for the article
+p_string <- ifelse(p_diff < 0.001, "p < .001", paste0("p = ", round(p_diff, 3)))
+manuscript_text <- paste0("A chi-square difference test revealed that the theory-driven 2-factor model fit the data significantly better than the exploratory 1-factor model (Δχ²(", df_diff, ") = ", chi_diff, ", ", p_string, ").")
+
+# Extract key fit stats
+extract_fit <- function(fit, name) {
+  meas <- fitMeasures(fit, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr", "bic"))
+  data.frame(
+    Model = name,
+    Chi_Square = round(meas["chisq"], 2),
+    df = meas["df"],
+    CFI = round(meas["cfi"], 3),
+    TLI = round(meas["tli"], 3),
+    RMSEA = round(meas["rmsea"], 3),
+    SRMR = round(meas["srmr"], 3),
+    BIC = round(meas["bic"], 2),
+    stringsAsFactors = FALSE
+  )
+}
+
+comparison_df <- rbind(
+  extract_fit(fit_1f, "1-Factor (Exploratory)"),
+  extract_fit(fit_2f, "2-Factor (Theory-Driven)")
+)
+
+# save
+output_path <- here("Output", "H0", "Robustness", "Study2_Dimensionality_Check.doc")
+dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+
+tab_df(
+  comparison_df, 
+  title = "Study 2: Dimensionality Robustness Check (1-Factor vs 2-Factor)",
+  file = output_path
+)
+
+# Print
+print(manuscript_text)
+
+```
+
+### Study 3: Canada and US
+
+```{r}
+# Target the problematic countries
+target_countries <- c("Study3_CMQ_Canada", "Study3_CMQ_United States")
+
+# Function to extract fit safely (the us model crashes)
+extract_fit <- function(fit, name) {
+  if (is.null(fit)) {
+    return(data.frame(
+      Model = name, Chi_Square = NA, df = NA, CFI = NA, TLI = NA, 
+      RMSEA = NA, SRMR = NA, BIC = NA, stringsAsFactors = FALSE
+    ))
+  }
+  
+  meas <- fitMeasures(fit, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr", "bic"))
+  data.frame(
+    Model = name,
+    Chi_Square = round(meas["chisq"], 2),
+    df = meas["df"],
+    CFI = round(meas["cfi"], 3),
+    TLI = round(meas["tli"], 3),
+    RMSEA = round(meas["rmsea"], 3),
+    SRMR = round(meas["srmr"], 3),
+    BIC = round(meas["bic"], 2),
+    stringsAsFactors = FALSE
+  )
+}
+
+# Table S7 of the Supplement used to exist only as console output, which meant it could not
+# be checked against the submitted document without re-reading a log. It is now collected and
+# written to a file like every other table.
+tableS7_list <- list()
+
+for (country in target_countries) {
+  
+  clean_name <- gsub("Study3_CMQ_", "", country)
+  
+  # data matrix and variable names
+  data_matrix <- as.data.frame(H0_matrices[[country]])
+  var_names <- colnames(data_matrix)
+  
+  # 2-Factor Model (theory based)
+  cm_vars <- var_names[grepl("^cm_", var_names)]
+  cb_vars <- var_names[grepl("^cb_", var_names)]
+  
+  model_2f <- paste0(
+    "Factor_CM =~ ", paste(cm_vars, collapse = " + "), "\n",
+    "Factor_CB =~ ", paste(cb_vars, collapse = " + ")
+  )
+  
+  # 3-Factor Model based on EGA's $wc output
+  wc_result <- EGA_results[[country]]$wc
+  model_3f <- ""
+  
+  for (dim in unique(wc_result)) {
+    if (!is.null(names(wc_result))) {
+      dim_vars <- names(wc_result)[wc_result == dim]
+    } else {
+      dim_vars <- var_names[which(wc_result == dim)]
+    }
+    model_3f <- paste0(model_3f, "EGA_Dim_", dim, " =~ ", paste(dim_vars, collapse = " + "), "\n")
+  }
+  
+  # Fit both 
+  # If a model fails to converge, it returns NULL
+  fit_3f <- tryCatch(suppressWarnings(cfa(model_3f, data = data_matrix, std.lv = TRUE)), error = function(e) NULL)
+  fit_2f <- tryCatch(suppressWarnings(cfa(model_2f, data = data_matrix, std.lv = TRUE)), error = function(e) NULL)
+  
+  # Check for non-convergence manually 
+  if (!is.null(fit_3f) && !lavInspect(fit_3f, "converged")) fit_3f <- NULL
+  if (!is.null(fit_2f) && !lavInspect(fit_2f, "converged")) fit_2f <- NULL
+  
+  # Extract fit stats
+  comp_df <- rbind(
+    extract_fit(fit_3f, "3-Factor (Exploratory)"),
+    extract_fit(fit_2f, "2-Factor (Theory-Driven)")
+  )
+  
+  # Print 
+  cat("\n======================================================\n")
+  cat("RESULTS FOR:", clean_name, "\n")
+  cat("======================================================\n")
+  print(comp_df)
+  cat("\n")
+
+  tableS7_list[[clean_name]] <- cbind(Country = clean_name, comp_df)
+}
+
+# Write Table S7 to a file.
+tableS7 <- do.call(rbind, tableS7_list)
+rownames(tableS7) <- NULL
+dir.create(here("Output", "H0", "Robustness"), recursive = TRUE, showWarnings = FALSE)
+sjPlot::tab_df(tableS7,
+               title = paste("Table S7: fit comparison of the theory-driven two-factor",
+                             "model and the EGA-informed specification, for Canada (top)",
+                             "and the United States (bottom). The EGA-informed",
+                             "specification for the United States implies a",
+                             "single-indicator factor and does not converge, so its row",
+                             "is empty."),
+               file = here("Output", "H0", "Robustness", "Table_S7_Canada_US_Comparison.doc"))
+tableS7
+```
+
+
+
+

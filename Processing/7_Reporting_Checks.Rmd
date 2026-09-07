@@ -1,0 +1,367 @@
+---
+title: "7 - Reporting checks"
+output: html_document
+---
+
+This script exists for one reason: every number we put in the Results has to be re-derivable
+from the data without reading it off a figure. It recomputes the sample sizes, the EGA
+communities, the reliability and fit statistics with their intervals, and above all the
+bootstrapped difference tests on Strength that decide H1 and H2 in each country-network. It
+also re-estimates all the H1/H2 networks under cross-validation as a quick check on the tuning
+criterion; script 6 carries the full version of that check, with bootstraps and difference
+tests under two alternative specifications.
+
+# Input
+
+```{r}
+library(pacman)
+p_load(tidyverse, here, psych, lavaan, EGAnet, mgm, bootnet, huge, conflicted, sjPlot)
+
+rm(list = ls())
+options(scipen = 999)
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+
+# master_datasets.rds is built by script 1 and is included in this repository, so this script
+# runs as-is. The raw Study 2 and Study 3 files that script 1 starts from are not redistributed
+# here: see the note at the top of 1_Data_Managment.Rmd, or "Data sources" in the README,
+# for how to download them from the Harvard Dataverse.
+master_datasets <- readRDS(here("Input", "Secondary", "master_datasets.rds"))
+boot_results_H1 <- readRDS(here("Input", "Secondary", "boot_H1_master.rds"))
+boot_results_H2 <- readRDS(here("Input", "Secondary", "boot_H2_master.rds"))
+
+out_dir <- here("Output", "Reporting_Checks")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+# Sample sizes
+
+```{r}
+# These are the Ns actually analysed, i.e. after listwise deletion on the items used.
+# The raw CCRS file has 8,101 respondents, but the Study 3 analytic sample is smaller.
+n_table <- map_dfr(names(master_datasets), function(s) {
+  d <- master_datasets[[s]] %>%
+    select(country, starts_with("cm_"), starts_with("cb_")) %>%
+    na.omit()
+  d %>% count(country) %>% mutate(Study = s)
+}) %>% select(Study, country, n)
+
+n_table
+n_table %>% group_by(Study) %>% summarise(N = sum(n))
+cat("Total analytic N:", sum(n_table$n), "\n")
+
+write.csv(n_table, file.path(out_dir, "Check_Sample_Sizes.csv"), row.names = FALSE)
+```
+
+# Matrices
+
+```{r}
+H1_matrices <- list()
+H2_matrices <- list()
+H0_matrices <- list()
+
+for (study_name in names(master_datasets)) {
+  df <- master_datasets[[study_name]]
+
+  d0 <- df %>% select(country, starts_with("cm_"), starts_with("cb_")) %>% na.omit()
+  for (cn in unique(d0$country)) {
+    H0_matrices[[paste0(study_name, "_", cn)]] <-
+      as.matrix(d0[d0$country == cn, setdiff(names(d0), "country")])
+  }
+
+  d1 <- df %>% select(country, CM, starts_with("cb_")) %>% na.omit()
+  for (cn in unique(d1$country)) {
+    H1_matrices[[paste0(study_name, "_", cn)]] <-
+      huge.npn(as.matrix(d1[d1$country == cn, setdiff(names(d1), "country")]), verbose = FALSE)
+  }
+
+  d2 <- df %>% select(country, CB, starts_with("cm_")) %>% na.omit()
+  for (cn in unique(d2$country)) {
+    H2_matrices[[paste0(study_name, "_", cn)]] <-
+      huge.npn(as.matrix(d2[d2$country == cn, setdiff(names(d2), "country")]), verbose = FALSE)
+  }
+}
+```
+
+# H0: EGA communities
+
+```{r}
+ega_check <- map_dfr(names(H0_matrices), function(nm) {
+  e <- suppressWarnings(EGA(H0_matrices[[nm]], plot.EGA = FALSE))
+  wc <- e$wc
+  data.frame(
+    Network      = nm,
+    N_communities = length(unique(wc[!is.na(wc)])),
+    N_unassigned  = sum(is.na(wc)),
+    Partition     = paste(paste0(names(wc), ":", wc), collapse = " "),
+    stringsAsFactors = FALSE
+  )
+})
+
+ega_check %>% select(Network, N_communities, N_unassigned)
+write.csv(ega_check, file.path(out_dir, "Check_EGA_Communities.csv"), row.names = FALSE)
+```
+
+# Reliability and fit, with intervals
+
+```{r}
+ci_check <- map_dfr(names(H0_matrices), function(nm) {
+  d  <- as.data.frame(H0_matrices[[nm]])
+  cm <- d[, grepl("^cm_", names(d)), drop = FALSE]
+  cb <- d[, grepl("^cb_", names(d)), drop = FALSE]
+
+  a_cm <- suppressWarnings(psych::alpha(cm))
+  a_cb <- suppressWarnings(psych::alpha(cb))
+
+  mod <- paste0("Factor1_CB =~ ", paste(names(cb), collapse = " + "), "\n",
+                "Factor2_CM =~ ", paste(names(cm), collapse = " + "))
+  fit <- suppressWarnings(cfa(mod, data = d, std.lv = TRUE))
+  fm  <- fitMeasures(fit, c("chisq", "df", "cfi", "tli",
+                            "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", "srmr", "bic"))
+
+  # unname() matters: psych and lavaan return named numerics, and data.frame() would
+  # otherwise overwrite my column names with theirs.
+  data.frame(
+    Network = nm, N = nrow(d),
+    Alpha_CM = round(unname(a_cm$total$raw_alpha), 3),
+    Alpha_CM_LCI = round(unname(a_cm$feldt$lower.ci), 3),
+    Alpha_CM_UCI = round(unname(a_cm$feldt$upper.ci), 3),
+    Alpha_CB = round(unname(a_cb$total$raw_alpha), 3),
+    Alpha_CB_LCI = round(unname(a_cb$feldt$lower.ci), 3),
+    Alpha_CB_UCI = round(unname(a_cb$feldt$upper.ci), 3),
+    CFI = round(unname(fm["cfi"]), 3), TLI = round(unname(fm["tli"]), 3),
+    RMSEA = round(unname(fm["rmsea"]), 3),
+    RMSEA_LCI = round(unname(fm["rmsea.ci.lower"]), 3),
+    RMSEA_UCI = round(unname(fm["rmsea.ci.upper"]), 3),
+    SRMR = round(unname(fm["srmr"]), 3), BIC = round(unname(fm["bic"]), 2),
+    stringsAsFactors = FALSE
+  )
+})
+
+ci_check
+write.csv(ci_check, file.path(out_dir, "Check_Alpha_Fit_CIs.csv"), row.names = FALSE)
+```
+
+# H1 and H2: rank of the summary node
+
+```{r}
+# The summary node (CM in H1, CB in H2) is always the first column of the matrix.
+# I take three things per network: the rank of its point estimate in the bootnet sample
+# network, whether its 95% bootstrap CI sits entirely above or entirely below the CIs of all
+# the other nodes, and the same rank recomputed with the CV/OR settings used for the plots.
+
+rank_from_boot <- function(boot_list, hyp) {
+  map_dfr(names(boot_list), function(nm) {
+    x  <- boot_list[[nm]]
+    lb <- x$sample$labels
+    st <- colSums(abs(x$sample$graph)); names(st) <- lb
+
+    bt <- x$bootTable
+    stopifnot(all(as.character(bt$node1) == rep(lb, length.out = nrow(bt))))
+
+    ci <- bt %>%
+      group_by(node1) %>%
+      summarise(lo = quantile(value, .025), hi = quantile(value, .975), .groups = "drop")
+    ci <- ci[match(lb, ci$node1), ]
+
+    data.frame(
+      Hypothesis   = hyp,
+      Network      = nm,
+      N_nodes      = length(st),
+      Summary_node = lb[1],
+      Rank         = as.integer(rank(-st)[1]),
+      Is_highest   = st[1] == max(st),
+      Is_lowest    = st[1] == min(st),
+      CI_lower     = round(ci$lo[1], 3),
+      CI_upper     = round(ci$hi[1], 3),
+      CI_above_all = ci$lo[1] > max(ci$hi[-1]),
+      CI_below_all = ci$hi[1] < min(ci$lo[-1]),
+      stringsAsFactors = FALSE
+    )
+  })
+}
+
+ranks_boot <- bind_rows(rank_from_boot(boot_results_H1, "H1"),
+                        rank_from_boot(boot_results_H2, "H2"))
+ranks_boot
+```
+
+```{r}
+# The same ranks, re-derived from point estimates under cross-validation and the OR rule,
+# which is a setting no figure in the paper uses.
+# Everything in the paper, drawn or analysed, uses EBIC (lambdaGam = 0.25) with the AND rule,
+# which is what bootnet(default = "mgm") applies. This block is the cheap version of the
+# tuning check: it compares point-estimate ranks only. Script 6 runs the full version,
+# bootstrapping each alternative specification and re-running the difference tests.
+set.seed(123)
+
+rank_cv <- function(mat_list, hyp) {
+  map_dfr(names(mat_list), function(nm) {
+    m <- mat_list[[nm]]; k <- ncol(m)
+    fit <- mgm(m, type = rep("g", k), level = rep(1, k),
+               lambdaSel = "CV", ruleReg = "OR", verbose = FALSE, pbar = FALSE)
+    st <- colSums(abs(fit$pairwise$wadj)); names(st) <- colnames(m)
+    data.frame(Hypothesis = hyp, Network = nm,
+               Rank_CV = as.integer(rank(-st)[1]),
+               stringsAsFactors = FALSE)
+  })
+}
+
+ranks_cv <- bind_rows(rank_cv(H1_matrices, "H1"), rank_cv(H2_matrices, "H2"))
+
+ranks_all <- left_join(ranks_boot, ranks_cv, by = c("Hypothesis", "Network")) %>%
+  mutate(Same_rank = Rank == Rank_CV)
+
+ranks_all
+cat("Networks where CV/OR and EBIC/AND give a different rank:",
+    sum(!ranks_all$Same_rank), "out of", nrow(ranks_all), "\n")
+
+write.csv(ranks_all, file.path(out_dir, "Check_Summary_Node_Ranks.csv"), row.names = FALSE)
+```
+
+# Bootstrapped difference tests on Strength
+
+```{r}
+# This is the decision rule the paper applies to H1 and H2.
+#
+# Comparing point estimates ("the summary node has the highest Strength") is not a test, and
+# comparing two marginal bootstrap CIs is not one either: two nodes can differ reliably while
+# their intervals overlap, so a non-overlap rule is conservative in a direction we cannot
+# quantify. Epskamp, Borsboom & Fried (2018) recommend the bootstrapped difference test, which
+# is what we use: for every other node in the network, take the difference in Strength within
+# each bootstrap sample and read the 2.5th and 97.5th percentiles of that difference.
+#
+# The summary node (CM in H1, CB in H2) is always the first column of the input matrix.
+#   supported   = the summary node is reliably MORE central than every other node
+#   falsified   = the summary node is reliably LESS central than every other node
+#   inconclusive = neither
+
+diff_test <- function(boot_list, hyp) {
+  map_dfr(names(boot_list), function(nm) {
+
+    x  <- boot_list[[nm]]
+    lb <- x$sample$labels
+    summ <- lb[1]
+
+    bt <- x$bootTable
+    stopifnot(all(as.character(bt$node1) == rep(lb, length.out = nrow(bt))))
+
+    # bootTable arrives in blocks of length(lb) rows, one block per bootstrap sample,
+    # in the column order of the input matrix (asserted just above).
+    M <- matrix(bt$value, ncol = length(lb), byrow = TRUE)
+    colnames(M) <- lb
+
+    others <- setdiff(lb, summ)
+    d  <- vapply(others, function(o) quantile(M[, summ] - M[, o], c(.025, .975)),
+                 numeric(2))
+
+    st <- colSums(abs(x$sample$graph)); names(st) <- lb
+
+    data.frame(
+      Hypothesis    = hyp,
+      Network       = nm,
+      Summary_node  = summ,
+      N_nodes       = length(lb),
+      Strength      = round(unname(st[summ]), 3),
+      CI_lower      = round(unname(quantile(M[, summ], .025)), 3),
+      CI_upper      = round(unname(quantile(M[, summ], .975)), 3),
+      Rank          = as.integer(rank(-st)[1]),
+      N_sig_higher  = sum(d[1, ] > 0),
+      N_sig_lower   = sum(d[2, ] < 0),
+      N_comparisons = length(others),
+      Sig_highest   = all(d[1, ] > 0),
+      Sig_lowest    = all(d[2, ] < 0),
+      stringsAsFactors = FALSE
+    )
+  })
+}
+
+diff_all <- bind_rows(diff_test(boot_results_H1, "H1"),
+                      diff_test(boot_results_H2, "H2")) %>%
+  mutate(Verdict = case_when(Sig_highest ~ "supported",
+                             Sig_lowest  ~ "falsified",
+                             TRUE        ~ "inconclusive"))
+
+diff_all
+write.csv(diff_all, file.path(out_dir, "Check_Difference_Tests.csv"), row.names = FALSE)
+```
+
+```{r}
+# The same table, formatted for the Supplement (Table S9).
+table_S9 <- diff_all %>%
+  transmute(
+    Hypothesis,
+    Network,
+    `Summary node`      = Summary_node,
+    Strength            = sprintf("%.2f [%.2f, %.2f]", Strength, CI_lower, CI_upper),
+    Rank,
+    `Sig. higher than`  = sprintf("%d/%d", N_sig_higher, N_comparisons),
+    `Sig. lower than`   = sprintf("%d/%d", N_sig_lower,  N_comparisons),
+    Verdict
+  )
+
+dir.create(here("Output", "Difference_Tests"), recursive = TRUE, showWarnings = FALSE)
+tab_df(table_S9,
+       title = paste("Table S9: bootstrapped difference tests on Strength.",
+                     "A hypothesis is supported only where the summary node is reliably more",
+                     "central than every other node, and falsified where it is reliably less",
+                     "central than every other node."),
+       file = here("Output", "Difference_Tests", "Table_S9_Difference_Tests.doc"))
+```
+
+```{r}
+# Counts as they are stated in the Results.
+diff_all %>% count(Hypothesis, Verdict) %>% print()
+
+cat("
+Supported networks:
+")
+diff_all %>% filter(Verdict == "supported") %>% select(Hypothesis, Network) %>% print()
+
+cat("
+Per study:
+")
+diff_all %>%
+  mutate(Study = case_when(grepl("Study1", Network) ~ "Study 1",
+                           grepl("Study2", Network) ~ "Study 2",
+                           TRUE                     ~ "Study 3")) %>%
+  count(Study, Hypothesis, Verdict) %>% as.data.frame() %>% print()
+```
+
+# The sentences these numbers have to support
+
+```{r}
+# Study 1, H1: in how many countries is the mentality index the least central node?
+ranks_all %>% filter(Hypothesis == "H1", grepl("Study1", Network)) %>%
+  summarise(lowest = sum(Is_lowest), ci_below_all = sum(CI_below_all)) %>% print()
+ranks_all %>% filter(Hypothesis == "H1", grepl("Study1", Network), !Is_lowest) %>%
+  select(Network, Rank, N_nodes) %>% print()
+
+# Study 1, H2: in which countries is the beliefs index the most central node?
+ranks_all %>% filter(Hypothesis == "H2", grepl("Study1", Network)) %>%
+  select(Network, Rank, Is_highest, CI_above_all) %>% print()
+
+# Study 3, H1: least central everywhere, CI below all others where?
+ranks_all %>% filter(Hypothesis == "H1", grepl("Study3", Network)) %>%
+  select(Network, Rank, Is_lowest, CI_below_all) %>% print()
+
+# Study 3, H2: the beliefs index is the least central node in every country
+ranks_all %>% filter(Hypothesis == "H2", grepl("Study3", Network)) %>%
+  select(Network, Rank, Is_lowest) %>% print()
+```
+
+# CS coefficients
+
+```{r}
+cs <- read.csv(here("Output", "Robustness", "Stability", "Appendix_CS_Coefficients.csv"),
+               stringsAsFactors = FALSE)
+
+cs %>%
+  mutate(Hyp = substr(Network, 1, 2),
+         Study = case_when(grepl("Study1", Network) ~ "Study 1",
+                           grepl("Study2", Network) ~ "Study 2",
+                           TRUE ~ "Study 3")) %>%
+  group_by(Study, Hyp) %>%
+  summarise(min_CS = min(CS_Coefficient),
+            where  = Network[which.min(CS_Coefficient)], .groups = "drop")
+```

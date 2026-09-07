@@ -1,0 +1,18 @@
+"Dataset","CM_Items","Alpha_CM","CB_Items","Alpha_CB"
+"Study1_SUSPECTS_DEU",5,0.827,8,0.943
+"Study1_SUSPECTS_ESP",5,0.805,8,0.927
+"Study1_SUSPECTS_FRA",5,0.825,8,0.931
+"Study1_SUSPECTS_GBR",5,0.801,8,0.936
+"Study1_SUSPECTS_ITA",5,0.818,8,0.935
+"Study1_SUSPECTS_POL",5,0.801,8,0.932
+"Study1_SUSPECTS_SWE",5,0.833,8,0.942
+"Study1_SUSPECTS_USA",5,0.822,8,0.941
+"Study2_ACTS_USA",4,0.863,6,0.835
+"Study3_CMQ_Australia",5,0.838,4,0.847
+"Study3_CMQ_Brazil",5,0.81,4,0.829
+"Study3_CMQ_Canada",5,0.879,4,0.886
+"Study3_CMQ_Germany",5,0.911,4,0.83
+"Study3_CMQ_Lebanon",5,0.836,4,0.661
+"Study3_CMQ_Morocco",5,0.811,4,0.687
+"Study3_CMQ_South Africa",5,0.814,4,0.84
+"Study3_CMQ_United States",5,0.884,4,0.762

@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<style>
+html, body { background-color: white; }
+table { border-collapse:collapse; border:none; }
+caption { font-weight: bold; text-align:left; }
+td {  }
+.thead { border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; }
+.tdata { padding:0.2cm; text-align:left; vertical-align:top; }
+.arc { background-color:#f2f2f2; }
+.summary { padding-top:0.1cm; padding-bottom:0.1cm; }
+.summarydata { text-align:center; }
+.fixedparts { font-weight:bold; text-align:left; }
+.randomparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.zeroparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.simplexparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.lasttablerow { border-bottom: double; }
+.firsttablerow { border-bottom:1px solid black; }
+.firstsumrow { border-top:1px solid; }
+.labelcellborder { border-bottom:1px solid; }
+.depvarhead { text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; }
+.depvarheadnodv { border-top: double; text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; }
+.leftalign { text-align:left; }
+.centeralign { text-align:center; }
+.firsttablecol { text-align:left; }
+.footnote { font-style:italic; border-top:double black; text-align:right; }
+.subtitle { font-weight: normal; }
+.modelcolumn1 {  }
+.modelcolumn2 {  }
+.modelcolumn3 {  }
+.modelcolumn4 {  }
+.modelcolumn5 {  }
+.modelcolumn6 {  }
+.modelcolumn7 {  }
+.col1 {  }
+.col2 {  }
+.col3 {  }
+.col4 {  }
+.col5 {  }
+.col6 {  }
+</style>
+</head>
+<body>
+<table>
+  <caption>Table S5 (top): reliability, Study 2. Cronbach's alpha with Feldt 95% intervals.</caption>
+  <tr>
+    <th class="thead firsttablerow firsttablecol col1">Dataset</th>
+    <th class="thead firsttablerow col2">N</th>
+    <th class="thead firsttablerow col3">CM items</th>
+    <th class="thead firsttablerow col4">Alpha (CM) [95% CI]</th>
+    <th class="thead firsttablerow col5">CB items</th>
+    <th class="thead firsttablerow col6">Alpha (CB) [95% CI]</th>
+  </tr>
+  <tr>
+    <td class="tdata firsttablecol lasttablerow col1">USA</td>
+    <td class="tdata centeralign lasttablerow col2">2020</td>
+    <td class="tdata centeralign lasttablerow col3">4</td>
+    <td class="tdata centeralign lasttablerow col4">0.86 [0.85, 0.87]</td>
+    <td class="tdata centeralign lasttablerow col5">6</td>
+    <td class="tdata centeralign lasttablerow col6">0.83 [0.82, 0.85]</td>
+</tr>
+</table>
+<p>&nbsp;</p><table>
+  <caption>Table S5 (bottom): fit of the two-factor model, Study 2. RMSEA with its 90% interval.</caption>
+  <tr>
+    <th class="thead firsttablerow firsttablecol col1">Dataset</th>
+    <th class="thead firsttablerow col2">Chi square</th>
+    <th class="thead firsttablerow col3">p</th>
+    <th class="thead firsttablerow col4">CFI</th>
+    <th class="thead firsttablerow col5">TLI</th>
+    <th class="thead firsttablerow col6">RMSEA [90% CI]</th>
+    <th class="thead firsttablerow col7">SRMR</th>
+    <th class="thead firsttablerow col8">BIC</th>
+  </tr>
+  <tr>
+    <td class="tdata firsttablecol lasttablerow col1">USA</td>
+    <td class="tdata centeralign lasttablerow col2">603.21</td>
+    <td class="tdata centeralign lasttablerow col3"><.001</td>
+    <td class="tdata centeralign lasttablerow col4">0.94</td>
+    <td class="tdata centeralign lasttablerow col5">0.92</td>
+    <td class="tdata centeralign lasttablerow col6">0.09 [0.085, 0.097]</td>
+    <td class="tdata centeralign lasttablerow col7">0.05</td>
+    <td class="tdata centeralign lasttablerow col8">55109.37</td>
+</tr>
+</table>
+
+</body></html>

@@ -1,0 +1,354 @@
+<table style="border-collapse:collapse; border:none;">
+<caption style="font-weight: bold; text-align:left;">Table S9: bootstrapped difference tests on Strength. A hypothesis is supported only where the summary node is reliably more central than every other node, and falsified where it is reliably less central than every other node.</caption>
+<tr>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left; ">Hypothesis</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Network</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Summary.node</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Strength</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Rank</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Sig..higher.than</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col7">Sig..lower.than</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col8">Verdict</th>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_DEU</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.68 [0.61, 0.73]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_ESP</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.50 [0.44, 0.56]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_FRA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.73 [0.70, 0.80]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">6/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_GBR</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.63 [0.57, 0.68]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_ITA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.62 [0.56, 0.66]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_POL</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.48 [0.45, 0.57]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_SWE</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.60 [0.54, 0.65]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_USA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.68 [0.62, 0.72]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">8/8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study2_ACTS_USA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1.00 [0.93, 1.07]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3/6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0/6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Australia</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.20 [0.09, 0.28]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Brazil</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.21 [0.11, 0.39]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Canada</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.44 [0.38, 0.64]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Germany</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.38 [0.29, 0.46]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Lebanon</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.19 [0.09, 0.37]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Morocco</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.35 [0.30, 0.66]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">2/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_South Africa</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.23 [0.13, 0.45]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_United States</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CM</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.61 [0.50, 0.68]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">2/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_DEU</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.97 [0.91, 1.04]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">4/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_ESP</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.72 [0.66, 0.77]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">4/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_FRA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1.00 [0.94, 1.06]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">supported</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_GBR</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.93 [0.87, 0.98]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_ITA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.85 [0.79, 0.91]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">1/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_POL</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.74 [0.68, 0.81]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">3/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_SWE</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.85 [0.78, 0.91]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">1/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study1_SUSPECTS_USA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.95 [0.89, 1.01]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">4/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study2_ACTS_USA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.72 [0.67, 0.79]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">1/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">3/4</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">inconclusive</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Australia</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.64 [0.38, 0.76]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Brazil</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.43 [0.17, 0.50]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Canada</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.53 [0.44, 0.73]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Germany</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.59 [0.37, 0.72]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Lebanon</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.23 [0.08, 0.36]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_Morocco</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.23 [0.14, 0.36]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">Study3_CMQ_South Africa</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.19 [0.13, 0.35]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">falsified</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; border-bottom: double; ">H2</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">Study3_CMQ_United States</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">CB</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">0.39 [0.30, 0.66]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">6</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">0/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col7">5/5</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col8">falsified</td>
+</tr>
+</table>
+

@@ -1,0 +1,169 @@
+---
+title: "1 - Data management"
+output: html_document
+---
+
+# Input
+
+```{r}
+#Libraries
+library(pacman)
+p_load(lavaan, rio, tidyverse, psych, here, stargazer, summarytools, visdat,
+       EGAnet, qgraph, semPlot, haven, janitor, readxl, labelled, countrycode,
+       openxlsx)
+
+#Options
+rm(list = ls())
+options(scipen = 99)
+```
+
+<!--
+IMPORTANT - two of the three raw files are NOT in this repository.
+
+Study 1 (SUSPECTS) ships with the repository. The Study 2 and Study 3 raw files belong to other
+research teams and are distributed by them, so they are not redistributed here. Both are free to
+obtain from the Harvard Dataverse; do this once and this script runs unchanged.
+
+Study 2 - Enders, A., Farhart, C., Miller, J., Uscinski, J., Saunders, K., & Drochon, H. (2023).
+"Are Republicans and conservatives more likely to believe conspiracy theories?"
+Political Behavior, 45(4), 2001-2024. https://doi.org/10.1007/s11109-022-09812-3
+Replication archive: https://doi.org/10.7910/DVN/MMMYGJ  (public, CC0 1.0 - no request needed)
+  - open the Files tab, find "Qualtrics 2021",
+  - Access File > Original File Format (Stata Binary). Not the .tab and not the CSV export:
+    read_dta() below expects the original Stata file, and the ingested versions drop the labels,
+  - save it as Input/Enders/Qualtrics 2021.dta.
+
+Study 3 - Bordeleau, J.-N., Stockemer, D., Amengay, A., & Shamaileh, A. (2025).
+"The Comparative Conspiracy Research Survey (CCRS): A new cross-national dataset for the study
+of conspiracy beliefs." European Political Science, 24(1), 1-11.
+https://doi.org/10.1057/s41304-023-00463-4
+Dataset: https://doi.org/10.7910/DVN/VRRY9B  (CC BY 4.0, but file access requests are enabled,
+so you may need to click "Request Access" and wait for approval)
+  - download "CCRS Dataset" as Comma Separated Values,
+  - save it as Input/CCRS/CCRS.csv.
+    clean_names() below turns the Dataverse column names into the snake_case forms used here
+    (ID_Q2 -> id_q2, ID_Q33_1 -> id_q33_1, ID_Q36_1 -> id_q36_1, and so on).
+
+If you only want to reproduce the analyses, you do not need either file: this script's output,
+Input/Secondary/master_datasets.rds, is included, and scripts 2 to 5 and 7 start from it.
+-->
+
+```{r}
+#Data SUSPECT
+SUSPECTS_GCB5 = read_rds(here("Input", "SUSPECTS.rds")) 
+
+# Data CCRS
+# See the note above: obtain CCRS.csv from https://doi.org/10.7910/DVN/VRRY9B
+CCRS = read_csv(here("Input", "CCRS", "CCRS.csv")) %>% clean_names()
+
+# Enders et al
+# We use the Qualtrics 2021 dataset as it has the richest set of CBs (17 items) + the 4 ACTS items
+# See the note above: obtain it from https://doi.org/10.7910/DVN/MMMYGJ
+Study2_ACTS <- read_dta(here("Input", "Enders", "Qualtrics 2021.dta")) %>% 
+  clean_names()
+```
+
+
+# Processing
+
+## SUSPECTS
+
+```{r}
+# SUSPECTS is clean: right names and no NAs
+names(SUSPECTS_GCB5)
+summary(is.na.data.frame(SUSPECTS_GCB5))
+```
+
+## Enders
+
+```{r}
+# Clean study 2 (ACTS)
+Study2_ACTS = Study2_ACTS %>% 
+  # country label
+  mutate(country = "USA") %>%
+  
+  # Rename the 4 CM items
+  rename(
+    cm_1 = con1, 
+    cm_2 = con2, 
+    cm_3 = con3, 
+    cm_4 = con4,
+    
+    # Rename ONLY the 6 CB items that are on the 1-5 scale (11 are removed)
+    cb_1 = epstein, 
+    cb_2 = lightbulbs, 
+    cb_3 = fda, 
+    cb_4 = soros, 
+    cb_5 = billgates, 
+    cb_6 = cellphone
+  ) %>%
+  
+  # Select only the country and the renamed items, then drop NAs
+  select(country, starts_with("cm_"), starts_with("cb_")) %>%
+  na.omit() %>%
+  
+  # Calculate CM and CB indices 
+  mutate(
+    CM = rowMeans(select(., starts_with("cm_"))),
+    CB = rowMeans(select(., starts_with("cb_")))
+  ) %>%
+  
+  # Reorder cols
+  select(country, CM, CB, starts_with("cm_"), starts_with("cb_"))
+
+# Verify 
+map(Study2_ACTS, summary)
+
+```
+
+
+## CCRS
+
+```{r}
+# 1, Base: cb items asked in all countries and CB index
+CCRS_base <- CCRS %>%
+  mutate(
+    country = id_q2,
+    # Recompute CB index using ONLY the 4 items asked in all countries
+    CB = rowMeans(select(., id_q36_1:id_q36_4), na.rm = TRUE)
+  ) %>%
+  rename(
+    cb_1 = id_q36_1, 
+    cb_2 = id_q36_2, 
+    cb_3 = id_q36_3, 
+    cb_4 = id_q36_4
+  )
+
+# 2, Dataset A: Bruder et al. CMQ (5 items)
+Study3_CMQ <- CCRS_base %>%
+  rename(
+    CM = id_q33,
+    cm_1 = id_q33_1, cm_2 = id_q33_2, cm_3 = id_q33_3,
+    cm_4 = id_q33_4, cm_5 = id_q33_5
+  ) %>%
+  select(country, CM, CB, starts_with("cm_"), starts_with("cb_")) %>%
+  na.omit() 
+
+# Clean up environment
+remove(CCRS_base)
+
+# Verify the remaining Study 3 dataset
+map(Study3_CMQ, summary)
+```
+
+
+# Output
+
+```{r}
+# List  
+master_datasets <- list(
+  Study1_SUSPECTS = SUSPECTS_GCB5,
+  Study2_ACTS     = Study2_ACTS,
+  Study3_CMQ      = Study3_CMQ
+)
+
+# Save 
+saveRDS(master_datasets, here("Input", "Secondary", "master_datasets.rds"))
+
+```
+

@@ -1,0 +1,59 @@
+<table style="border-collapse:collapse; border:none;">
+<caption style="font-weight: bold; text-align:left;">Table S7: fit comparison of the theory-driven two-factor model and the EGA-informed specification, for Canada (top) and the United States (bottom). The EGA-informed specification for the United States implies a single-indicator factor and does not converge, so its row is empty.</caption>
+<tr>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left; ">Country</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Model</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">Chi_Square</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">df</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">CFI</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">TLI</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col7">RMSEA</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col8">SRMR</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col9">BIC</th>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Canada</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3-Factor (Exploratory)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">93.28</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">24</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.98</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0.05</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">0.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">31033.79</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Canada</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">2-Factor (Theory-Driven)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">433.68</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">26</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.92</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">0.90</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">0.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">0.07</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">31360.42</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">United States</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">3-Factor (Exploratory)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">NA</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; border-bottom: double; ">United States</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">2-Factor (Theory-Driven)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">633.40</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">26</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">0.86</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">0.80</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col7">0.15</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col8">0.10</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col9">33075.51</td>
+</tr>
+</table>
+
