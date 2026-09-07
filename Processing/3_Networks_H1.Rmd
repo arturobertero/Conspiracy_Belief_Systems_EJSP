@@ -1,0 +1,221 @@
+---
+title: "3 - Networks, H1"
+output: html_document
+---
+
+# Input
+
+```{r}
+#Libraries
+library(pacman)
+p_load(lavaan, rio, tidyverse, psych, here, stargazer, summarytools, visdat,
+       EGAnet, qgraph, ggplot2, haven, janitor, readxl, labelled, reshape2,
+       openxlsx, mgm, bootnet, conflicted, magick, cocron, lme4, broom.mixed,
+       patchwork, huge)
+
+#Options
+rm(list = ls())
+options(scipen = 999)
+#conflicts
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+
+# Data
+# master_datasets.rds is built by script 1 and is included in this repository, so this script
+# runs as-is. The raw Study 2 and Study 3 files that script 1 starts from are not redistributed
+# here: see the note at the top of 1_Data_Managment.Rmd, or "Data sources" in the README,
+# for how to download them from the Harvard Dataverse.
+master_datasets <- readRDS(here("Input", "Secondary", "master_datasets.rds"))
+```
+
+# Processing
+
+## Preparation
+
+```{r}
+# Initialize an empty list 
+H1_matrices <- list()
+
+# Loop through the master list to extract and split data 
+for (study_name in names(master_datasets)) {
+  
+  df <- master_datasets[[study_name]]
+  
+  # For H1 we keep only country, CM, and cbs
+  df_clean <- df %>%
+    select(country, CM, starts_with("cb_")) %>%
+    na.omit()
+  
+  # Split by country
+  split_df <- split(df_clean[, setdiff(names(df_clean), "country")], df_clean$country)
+  
+  # Convert to matrices, apply nonparanormal transformation, and assign names
+  for (country_name in names(split_df)) {
+    list_name <- paste0(study_name, "_", country_name)
+    
+    # 1. Convert to raw matrix
+    raw_matrix <- as.matrix(split_df[[country_name]])
+    
+    # 2. Apply the nonparanormal transformation and store directly in H1_matrices
+    H1_matrices[[list_name]] <- huge.npn(raw_matrix, verbose = FALSE)
+  }
+}
+```
+
+
+## Network estimation and plotting
+
+```{r}
+# ONE ESTIMATOR FOR THE WHOLE PAPER.
+# Every network in this paper, drawn or analysed, is estimated with mgm() under EBIC
+# (lambdaGam = 0.25) and the AND rule. These are exactly the settings bootnet(default = "mgm")
+# applies internally, so the pictures below show the same networks the Strength estimates,
+# the bootstrap intervals and the difference tests are computed on. Script 6 re-runs the
+# H1 and H2 analyses under cross-validation, with the AND and then the OR rule. Ranks are
+# identical in all 34 networks and verdicts in 32 of 34; the German and British H1 networks
+# move from falsified to inconclusive, which Section 5.5 reports.
+# The seed is kept for the layout algorithm rather than for the fit: EBIC selection is
+# deterministic, but qgraph's spring placement is not.
+set.seed(123)
+
+# usual colors
+Totalgroup_cols_H1 <- c("#966FD6", "#006B3C") 
+
+for (name in names(H1_matrices)) {
+  
+  data_matrix <- H1_matrices[[name]]
+  n_vars <- ncol(data_matrix)
+  node_names <- colnames(data_matrix)
+  
+  # generate type and level 
+  type_vec <- rep("g", n_vars)
+  level_vec <- rep(1, n_vars)
+  
+  # estimation
+  mgm_result <- mgm(
+    data_matrix, type = type_vec, level = level_vec,
+    lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND", verbose = FALSE, pbar = FALSE
+  )
+  
+  # Predictability
+  pred_result <- predict(object = mgm_result, data = data_matrix, errorCon = 'R2')
+  
+  # assign to groups 
+  groups_H1 <- list(
+    "CB items" = which(grepl("^cb_", node_names)),
+    "CM Index" = which(node_names == "CM")
+  )
+  
+  # output path 
+  output_path <- here("Output", "H1", "Country_networks", paste0(name, ".png"))
+
+  # Open device
+  png(output_path, width = 4.15, height = 5.85, units = "in", res = 600)
+
+  # plot 
+  qgraph(
+    mgm_result$pairwise$wadj, layout = "spring", labels = node_names,
+    groups = groups_H1,  
+    color = Totalgroup_cols_H1, legend = FALSE,
+    title = name, edge.color = mgm_result$pairwise$edgecolor_cb,
+    vTrans = 180, borders = TRUE, vsize = 10, esize = 7, label.cex = 0.50,
+    label.scale = FALSE, 
+    pie = pred_result$errors[,2], 
+    pieColor = rep('#FFFF00', n_vars)
+  )
+
+  dev.off()
+}
+```
+
+```{r}
+# Figures for the supplement
+
+# Directories 
+input_dir <- here("Output", "H1", "Country_networks")
+output_dir <- here("Output", "H1", "Composite_Figures")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Fetch all PNGs 
+all_pngs <- list.files(input_dir, pattern = "\\.png$", full.names = TRUE)
+
+# STUDY 1: 8 Countries 
+study1_files <- all_pngs[grepl("Study1", all_pngs)]
+if (length(study1_files) == 8) {
+  
+  imgs_1a <- lapply(study1_files[1:4], image_read)
+  imgs_1b <- lapply(study1_files[5:8], image_read)
+  
+  comp_1a <- image_montage(image_join(imgs_1a), tile = "2x2", geometry = "+50+50")
+  comp_1b <- image_montage(image_join(imgs_1b), tile = "2x2", geometry = "+50+50")
+  
+  # Save 
+  image_write(comp_1a, path = here(output_dir, "H1_Study1_Composite_A.png"), format = "png")
+  image_write(comp_1b, path = here(output_dir, "H1_Study1_Composite_B.png"), format = "png")
+}
+
+#  STUDY 2
+study2_files <- all_pngs[grepl("Study2", all_pngs)]
+if (length(study2_files) == 1) {
+  file.copy(from = study2_files[1], to = here(output_dir, "H1_Study2_Composite.png"), overwrite = TRUE)
+}
+
+#STUDY 3 CMQ: 
+study3_cmq_files <- all_pngs[grepl("Study3_CMQ", all_pngs)]
+if (length(study3_cmq_files) == 8) {
+  
+  imgs_3a_cmq <- lapply(study3_cmq_files[1:4], image_read)
+  imgs_3b_cmq <- lapply(study3_cmq_files[5:8], image_read)
+  
+  comp_3a_cmq <- image_montage(image_join(imgs_3a_cmq), tile = "2x2", geometry = "+50+50")
+  comp_3b_cmq <- image_montage(image_join(imgs_3b_cmq), tile = "2x2", geometry = "+50+50")
+  
+  # Save 
+  image_write(comp_3a_cmq, path = here(output_dir, "H1_Study3_CMQ_Composite_A.png"), format = "png")
+  image_write(comp_3b_cmq, path = here(output_dir, "H1_Study3_CMQ_Composite_B.png"), format = "png")
+}
+
+```
+
+
+## Bootstrapping
+
+```{r}
+# mgm boots by country
+
+# NOTE ON THE ESTIMATOR. bootnet(default = "mgm") calls mgm() with lambdaSel = "EBIC"
+# (lambdaGam = 0.25) and ruleReg = "AND". Those are the settings the plotting loop above
+# uses, so the drawn networks and the bootstrapped Strength estimates are the same networks.
+# Script 6 repeats the whole H1/H2 analysis under cross-validation and the OR rule, the
+# mgm package default, and reports the verdicts side by side.
+
+# # Set seed for exact reproducibility
+# set.seed(123)
+#
+# # empty list
+# boot_results_H1 <- list()
+# 
+# # Loop across all matrices dynamically
+# for (name in names(H1_matrices)) {
+#   cat("Bootstrapping", name, "...\n")
+#   
+#   country_matrix <- H1_matrices[[name]]
+#   
+#   # bootnet 
+#   boot_result <- bootnet(
+#     country_matrix,
+#     nBoots = 1000,
+#     nCores = 16, 
+#     default = "mgm",
+#     statistics = "strength"
+#   )
+#     
+#   boot_results_H1[[name]] <- boot_result
+# }
+# 
+# # Save locally
+# saveRDS(boot_results_H1, here("Input", "Secondary", "boot_H1_master.rds"))
+
+# Load to save time
+boot_results_H1 <- readRDS(here("Input", "Secondary", "boot_H1_master.rds"))
+```

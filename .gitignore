@@ -1,0 +1,25 @@
+# RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj.user
+
+# knitr / rmarkdown
+*_cache/
+*_files/
+.knit.md
+.utf8.md
+.knit.hd
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Third-party raw data, not redistributed (see README, "Data sources")
+Input/CCRS/
+Input/Enders/
+
+# Working notes kept beside the code, not part of the replication package
+Reports/

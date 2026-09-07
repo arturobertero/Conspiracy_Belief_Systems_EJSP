@@ -1,0 +1,224 @@
+---
+title: "8 - Export the submission bundle"
+output: html_document
+---
+
+The analysis scripts write their output under names that describe what produced it
+(`H1_Study1_Composite_A.png`). The journal, the co-authors and anyone checking the paper
+against this repository need the opposite: names that match what the article calls things.
+
+This script builds `Output/Submission/`, in which every file carries the name it has in the
+article or the Supplement. Nothing is recomputed here. Two tables are assembled rather than
+copied, because Tables S2, S5 and S8 each combine a reliability panel and a fit panel that
+the analysis scripts write as one master file across all three studies.
+
+Run it last, after scripts 2, 3, 4, 5, 6 and 7.
+
+# Input
+
+```{r}
+library(pacman)
+p_load(tidyverse, here, sjPlot, conflicted)
+
+rm(list = ls())
+options(scipen = 999)
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+
+sub_dir <- here("Output", "Submission")
+if (dir.exists(sub_dir)) unlink(sub_dir, recursive = TRUE)
+dir.create(sub_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Every copy is checked. A silent failure here would ship a bundle with a figure missing,
+# which is exactly the class of error this script exists to prevent.
+copied <- character(0)
+missing <- character(0)
+
+put <- function(from, to) {
+  src <- here(from)
+  if (!file.exists(src)) {
+    missing <<- c(missing, from)
+    return(invisible(FALSE))
+  }
+  ok <- file.copy(src, file.path(sub_dir, to), overwrite = TRUE)
+  if (ok) copied <<- c(copied, to) else missing <<- c(missing, from)
+  invisible(ok)
+}
+```
+
+# Article figures
+
+```{r}
+put(file.path("Output", "Figures", "Figure 1 - conspiracy belief systems in the U.S.png"), "Figure 1.png")
+put(file.path("Output", "Figures", "Figure 2 - Study 1 results.png"),                      "Figure 2.png")
+put(file.path("Output", "Figures", "Figure 3 - Study 2 results.png"),                      "Figure 3.png")
+put(file.path("Output", "Figures", "Figure 4 - Study 3 results.png"),                      "Figure 4.png")
+
+# The vector versions are what the publisher typesets from.
+put(file.path("Output", "Figures", "Figure_1.pdf"), "Figure 1.pdf")
+put(file.path("Output", "Figures", "Figure_2.pdf"), "Figure 2.pdf")
+put(file.path("Output", "Figures", "Figure_3.pdf"), "Figure 3.pdf")
+put(file.path("Output", "Figures", "Figure_4.pdf"), "Figure 4.pdf")
+```
+
+# Supplement figures
+
+```{r}
+H0c <- file.path("Output", "H0", "Composite_Figures")
+H1c <- file.path("Output", "H1", "Composite_Figures")
+H2c <- file.path("Output", "H2", "Composite_Figures")
+RB  <- file.path("Output", "Robustness")
+ST  <- file.path("Output", "Robustness", "Stability")
+MC  <- file.path("Output", "Robustness", "MC")
+
+# Study 1
+put(file.path(H0c, "H0_Study1_Composite_A.png"), "Figure S1.png")
+put(file.path(H0c, "H0_Study1_Composite_B.png"), "Figure S2.png")
+put(file.path(H1c, "H1_Study1_Composite_A.png"), "Figure S3.png")
+put(file.path(H1c, "H1_Study1_Composite_B.png"), "Figure S4.png")
+put(file.path(H2c, "H2_Study1_Composite_A.png"), "Figure S5.png")
+put(file.path(H2c, "H2_Study1_Composite_B.png"), "Figure S6.png")
+put(file.path(RB, "Centrality_Profiles_Study1_SUSPECTS.png"), "Figure S7.png")
+put(file.path(ST, "Panel_Study1_SUSPECTS_H1.png"),            "Figure S8.png")
+put(file.path(ST, "Panel_Study1_SUSPECTS_H2.png"),            "Figure S9.png")
+
+# Study 2
+put(file.path(H0c, "H0_Study2_Composite.png"), "Figure S10.png")
+put(file.path(H1c, "H1_Study2_Composite.png"), "Figure S11.png")
+put(file.path(H2c, "H2_Study2_Composite.png"), "Figure S12.png")
+put(file.path(RB, "Centrality_Profiles_Study2_ACTS.png"),     "Figure S13.png")
+put(file.path(ST, "Panel_Study2_ACTS_All_Hypotheses.png"),    "Figure S14.png")
+
+# Study 3
+put(file.path(H0c, "H0_Study3_CMQ_Composite_A.png"), "Figure S15.png")
+put(file.path(H0c, "H0_Study3_CMQ_Composite_B.png"), "Figure S16.png")
+put(file.path(H1c, "H1_Study3_CMQ_Composite_A.png"), "Figure S17.png")
+put(file.path(H1c, "H1_Study3_CMQ_Composite_B.png"), "Figure S18.png")
+put(file.path(H2c, "H2_Study3_CMQ_Composite_A.png"), "Figure S19.png")
+put(file.path(H2c, "H2_Study3_CMQ_Composite_B.png"), "Figure S20.png")
+put(file.path(RB, "Centrality_Profiles_Study3_CMQ.png"), "Figure S21.png")
+put(file.path(ST, "Panel_Study3_CMQ_H1.png"),           "Figure S22.png")
+put(file.path(ST, "Panel_Study3_CMQ_H2.png"),           "Figure S23.png")
+
+# Equal-item Monte Carlo
+put(file.path(MC, "MC_Final_Hub_Probability.png"),    "Figure S24.png")
+put(file.path(MC, "MC_Final_Delta_Mean_Violin.png"),  "Figure S25.png")
+```
+
+# Supplement tables that are copied
+
+```{r}
+WD <- file.path("Output", "Wording")
+
+put(file.path(WD, "Table_S1_Wording_Study1.doc"), "Table S1.doc")
+put(file.path(WD, "Table_S3_Wording_Study2.doc"), "Table S3.doc")
+put(file.path(WD, "Table_S6_Wording_Study3.doc"), "Table S6.doc")
+
+put(file.path("Output", "H0", "Robustness", "Study2_Dimensionality_Check.doc"),     "Table S4.doc")
+put(file.path("Output", "H0", "Robustness", "Table_S7_Canada_US_Comparison.doc"),   "Table S7.doc")
+put(file.path("Output", "Difference_Tests", "Table_S9_Difference_Tests.doc"),       "Table S9.doc")
+put(file.path("Output", "Estimator_Robustness", "Table_S10_Estimator_Robustness.doc"), "Table S10.doc")
+```
+
+# Supplement tables that are assembled
+
+```{r}
+# Tables S2, S5 and S8 have the same shape and differ only in which study they cover:
+# a reliability panel with Feldt 95% intervals on alpha, and a two-factor CFA fit panel
+# with the 90% RMSEA interval. The analysis writes one master file per quantity across all
+# three studies, so the per-study tables are cut here.
+
+alpha_master <- read.csv(here("Output", "H0", "Alpha_Reliability_Master.csv"),
+                         stringsAsFactors = FALSE)
+fit_master   <- read.csv(here("Output", "H0", "CFA_Fit_Stats_Master.csv"),
+                         stringsAsFactors = FALSE)
+ci_master    <- read.csv(here("Output", "H0", "Alpha_RMSEA_CIs.csv"),
+                         stringsAsFactors = FALSE)
+
+short_name <- function(x) {
+  x <- sub("^Study1_SUSPECTS_", "", x)
+  x <- sub("^Study2_ACTS_",     "", x)
+  x <- sub("^Study3_CMQ_",      "", x)
+  x
+}
+
+# ci is the one that carries both alpha and its interval, so the reliability panel is built
+# from it and the item counts are joined in from the alpha master.
+build_reliability <- function(prefix) {
+  ci  <- ci_master[grepl(prefix, ci_master$Dataset, fixed = TRUE), , drop = FALSE]
+  alp <- alpha_master[grepl(prefix, alpha_master$Dataset, fixed = TRUE), , drop = FALSE]
+  m   <- merge(ci, alp[, c("Dataset", "CM_Items", "CB_Items")], by = "Dataset", sort = FALSE)
+  data.frame(
+    Dataset                   = short_name(m$Dataset),
+    N                         = m$N,
+    `CM items`                = m$CM_Items,
+    `Alpha (CM) [95% CI]`     = sprintf("%.2f [%.2f, %.2f]", m$Alpha_CM, m$Alpha_CM_LCI, m$Alpha_CM_UCI),
+    `CB items`                = m$CB_Items,
+    `Alpha (CB) [95% CI]`     = sprintf("%.2f [%.2f, %.2f]", m$Alpha_CB, m$Alpha_CB_LCI, m$Alpha_CB_UCI),
+    check.names = FALSE, stringsAsFactors = FALSE)
+}
+
+build_fit <- function(prefix) {
+  f  <- fit_master[grepl(prefix, fit_master$Dataset, fixed = TRUE), , drop = FALSE]
+  ci <- ci_master[grepl(prefix, ci_master$Dataset, fixed = TRUE), , drop = FALSE]
+  m  <- merge(f, ci[, c("Dataset", "RMSEA_LCI", "RMSEA_UCI")], by = "Dataset", sort = FALSE)
+  data.frame(
+    Dataset               = short_name(m$Dataset),
+    `Chi square`          = sprintf("%.2f", m$Chi_Square),
+    `p`                   = ifelse(m$P_Value < .001, "<.001", sprintf("%.3f", m$P_Value)),
+    CFI                   = sprintf("%.2f", m$CFI),
+    TLI                   = sprintf("%.2f", m$TLI),
+    `RMSEA [90% CI]`      = sprintf("%.2f [%.3f, %.3f]", m$RMSEA, m$RMSEA_LCI, m$RMSEA_UCI),
+    SRMR                  = sprintf("%.2f", m$SRMR),
+    BIC                   = sprintf("%.2f", m$BIC),
+    check.names = FALSE, stringsAsFactors = FALSE)
+}
+
+studies <- list(
+  list(table = "Table S2", prefix = "Study1_SUSPECTS_", label = "Study 1"),
+  list(table = "Table S5", prefix = "Study2_ACTS_",     label = "Study 2"),
+  list(table = "Table S8", prefix = "Study3_CMQ_",      label = "Study 3")
+)
+
+for (st in studies) {
+  rel <- build_reliability(st$prefix)
+  fit <- build_fit(st$prefix)
+  stopifnot(nrow(rel) > 0, nrow(fit) > 0)
+  # tab_dfs() ignores its own `file` argument in this version of sjPlot and writes nothing,
+  # so the HTML it returns is written here instead.
+  tt <- tab_dfs(
+    list(rel, fit),
+    titles = c(paste0(st$table, " (top): reliability, ", st$label,
+                      ". Cronbach's alpha with Feldt 95% intervals."),
+               paste0(st$table, " (bottom): fit of the two-factor model, ", st$label,
+                      ". RMSEA with its 90% interval."))
+  )
+  target <- file.path(sub_dir, paste0(st$table, ".doc"))
+  writeLines(tt$page.complete, con = file(target, encoding = "UTF-8"))
+  stopifnot(file.exists(target))
+  copied <- c(copied, paste0(st$table, ".doc"))
+}
+```
+
+# Check the bundle is complete
+
+```{r}
+expected <- c(
+  paste0("Figure ", 1:4, ".png"),
+  paste0("Figure ", 1:4, ".pdf"),
+  paste0("Figure S", 1:25, ".png"),
+  paste0("Table S", 1:10, ".doc")
+)
+
+present <- list.files(sub_dir)
+absent  <- setdiff(expected, present)
+extra   <- setdiff(present, expected)
+
+cat("files in Output/Submission:", length(present), "of", length(expected), "expected\n")
+if (length(missing)) { cat("\nsources that could not be found:\n"); print(missing) }
+if (length(absent))  { cat("\nMISSING from the bundle:\n"); print(absent) }
+if (length(extra))   { cat("\nunexpected extra files:\n"); print(extra) }
+if (!length(absent) && !length(missing)) cat("\nBundle complete.\n")
+
+writeLines(sort(present), file.path(sub_dir, "_contents.txt"))
+```

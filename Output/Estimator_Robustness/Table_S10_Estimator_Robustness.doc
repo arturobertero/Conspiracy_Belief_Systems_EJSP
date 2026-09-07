@@ -1,0 +1,364 @@
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<style>
+html, body { background-color: white; }
+table { border-collapse:collapse; border:none; }
+caption { font-weight: bold; text-align:left; }
+td {  }
+.thead { border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; }
+.tdata { padding:0.2cm; text-align:left; vertical-align:top; }
+.arc { background-color:#f2f2f2; }
+.summary { padding-top:0.1cm; padding-bottom:0.1cm; }
+.summarydata { text-align:center; }
+.fixedparts { font-weight:bold; text-align:left; }
+.randomparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.zeroparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.simplexparts { font-weight:bold; text-align:left; padding-top:.8em; }
+.lasttablerow { border-bottom: double; }
+.firsttablerow { border-bottom:1px solid black; }
+.firstsumrow { border-top:1px solid; }
+.labelcellborder { border-bottom:1px solid; }
+.depvarhead { text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; }
+.depvarheadnodv { border-top: double; text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; }
+.leftalign { text-align:left; }
+.centeralign { text-align:center; }
+.firsttablecol { text-align:left; }
+.footnote { font-style:italic; border-top:double black; text-align:right; }
+.subtitle { font-weight: normal; }
+.modelcolumn1 {  }
+.modelcolumn2 {  }
+.modelcolumn3 {  }
+.modelcolumn4 {  }
+.modelcolumn5 {  }
+.modelcolumn6 {  }
+.modelcolumn7 {  }
+.col1 {  }
+.col2 {  }
+.col3 {  }
+.col4 {  }
+.col5 {  }
+.col6 {  }
+</style>
+</head>
+<body>
+<table>
+  <caption>Table S10: estimator robustness. Strength of the summary node with its 95% bootstrap interval and the verdict of the difference test, under the specification used in the article (EBIC, lambdaGam = 0.25, AND rule) and under two alternatives that select the tuning parameter by cross-validation. Each cell rests on 1,000 non-parametric bootstraps.</caption>
+  <tr>
+    <th class="thead firsttablerow firsttablecol col1">Hypothesis</th>
+    <th class="thead firsttablerow col2">Network</th>
+    <th class="thead firsttablerow col3">Summary node</th>
+    <th class="thead firsttablerow col4">EBIC, AND (main)</th>
+    <th class="thead firsttablerow col5">CV, AND</th>
+    <th class="thead firsttablerow col6">CV, OR</th>
+    <th class="thead firsttablerow col7">Agreement</th>
+  </tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_DEU</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.68 [0.61, 0.73], falsified</td>
+    <td class="tdata centeralign col5">0.68 [0.64, 0.79], inconclusive</td>
+    <td class="tdata centeralign col6">0.68 [0.64, 0.79], inconclusive</td>
+    <td class="tdata centeralign col7">no</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_ESP</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.50 [0.44, 0.56], falsified</td>
+    <td class="tdata centeralign col5">0.52 [0.48, 0.59], falsified</td>
+    <td class="tdata centeralign col6">0.52 [0.49, 0.59], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_FRA</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.73 [0.70, 0.80], inconclusive</td>
+    <td class="tdata centeralign col5">0.76 [0.71, 0.88], inconclusive</td>
+    <td class="tdata centeralign col6">0.76 [0.71, 0.89], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_GBR</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.63 [0.57, 0.68], falsified</td>
+    <td class="tdata centeralign col5">0.64 [0.60, 0.73], inconclusive</td>
+    <td class="tdata centeralign col6">0.64 [0.61, 0.73], inconclusive</td>
+    <td class="tdata centeralign col7">no</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_ITA</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.62 [0.56, 0.66], falsified</td>
+    <td class="tdata centeralign col5">0.62 [0.57, 0.72], falsified</td>
+    <td class="tdata centeralign col6">0.62 [0.58, 0.72], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_POL</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.48 [0.45, 0.57], falsified</td>
+    <td class="tdata centeralign col5">0.52 [0.49, 0.61], falsified</td>
+    <td class="tdata centeralign col6">0.53 [0.50, 0.61], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_SWE</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.60 [0.54, 0.65], falsified</td>
+    <td class="tdata centeralign col5">0.60 [0.56, 0.71], falsified</td>
+    <td class="tdata centeralign col6">0.60 [0.56, 0.71], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_USA</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.68 [0.62, 0.72], falsified</td>
+    <td class="tdata centeralign col5">0.68 [0.64, 0.73], falsified</td>
+    <td class="tdata centeralign col6">0.68 [0.64, 0.72], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study2_ACTS_USA</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">1.00 [0.93, 1.07], inconclusive</td>
+    <td class="tdata centeralign col5">1.01 [0.95, 1.08], inconclusive</td>
+    <td class="tdata centeralign col6">1.01 [0.96, 1.09], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Australia</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.20 [0.09, 0.28], falsified</td>
+    <td class="tdata centeralign col5">0.20 [0.14, 0.40], falsified</td>
+    <td class="tdata centeralign col6">0.20 [0.14, 0.38], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Brazil</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.21 [0.11, 0.39], falsified</td>
+    <td class="tdata centeralign col5">0.31 [0.16, 0.44], falsified</td>
+    <td class="tdata centeralign col6">0.31 [0.16, 0.46], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Canada</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.44 [0.38, 0.64], falsified</td>
+    <td class="tdata centeralign col5">0.53 [0.40, 0.64], falsified</td>
+    <td class="tdata centeralign col6">0.53 [0.40, 0.64], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Germany</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.38 [0.29, 0.46], falsified</td>
+    <td class="tdata centeralign col5">0.44 [0.33, 0.58], falsified</td>
+    <td class="tdata centeralign col6">0.46 [0.34, 0.57], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Lebanon</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.19 [0.09, 0.37], falsified</td>
+    <td class="tdata centeralign col5">0.27 [0.18, 0.40], falsified</td>
+    <td class="tdata centeralign col6">0.29 [0.20, 0.40], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Morocco</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.35 [0.30, 0.66], inconclusive</td>
+    <td class="tdata centeralign col5">0.54 [0.39, 0.68], inconclusive</td>
+    <td class="tdata centeralign col6">0.54 [0.39, 0.67], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_South Africa</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.23 [0.13, 0.45], falsified</td>
+    <td class="tdata centeralign col5">0.32 [0.19, 0.48], falsified</td>
+    <td class="tdata centeralign col6">0.33 [0.21, 0.48], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H1</td>
+    <td class="tdata centeralign col2">Study3_CMQ_United States</td>
+    <td class="tdata centeralign col3">CM</td>
+    <td class="tdata centeralign col4">0.61 [0.50, 0.68], inconclusive</td>
+    <td class="tdata centeralign col5">0.60 [0.52, 0.76], inconclusive</td>
+    <td class="tdata centeralign col6">0.60 [0.52, 0.75], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_DEU</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.97 [0.91, 1.04], inconclusive</td>
+    <td class="tdata centeralign col5">0.98 [0.91, 1.03], inconclusive</td>
+    <td class="tdata centeralign col6">0.98 [0.92, 1.04], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_ESP</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.72 [0.66, 0.77], inconclusive</td>
+    <td class="tdata centeralign col5">0.72 [0.66, 0.78], inconclusive</td>
+    <td class="tdata centeralign col6">0.72 [0.66, 0.78], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_FRA</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">1.00 [0.94, 1.06], supported</td>
+    <td class="tdata centeralign col5">1.00 [0.94, 1.06], supported</td>
+    <td class="tdata centeralign col6">1.00 [0.94, 1.06], supported</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_GBR</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.93 [0.87, 0.98], inconclusive</td>
+    <td class="tdata centeralign col5">0.93 [0.87, 0.98], inconclusive</td>
+    <td class="tdata centeralign col6">0.93 [0.87, 0.98], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_ITA</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.85 [0.79, 0.91], inconclusive</td>
+    <td class="tdata centeralign col5">0.85 [0.80, 0.91], inconclusive</td>
+    <td class="tdata centeralign col6">0.85 [0.80, 0.91], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_POL</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.74 [0.68, 0.81], inconclusive</td>
+    <td class="tdata centeralign col5">0.75 [0.70, 0.81], inconclusive</td>
+    <td class="tdata centeralign col6">0.75 [0.70, 0.82], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_SWE</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.85 [0.78, 0.91], inconclusive</td>
+    <td class="tdata centeralign col5">0.85 [0.79, 0.91], inconclusive</td>
+    <td class="tdata centeralign col6">0.85 [0.79, 0.91], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study1_SUSPECTS_USA</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.95 [0.89, 1.01], inconclusive</td>
+    <td class="tdata centeralign col5">0.95 [0.89, 1.02], inconclusive</td>
+    <td class="tdata centeralign col6">0.95 [0.89, 1.02], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study2_ACTS_USA</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.72 [0.67, 0.79], inconclusive</td>
+    <td class="tdata centeralign col5">0.73 [0.69, 0.81], inconclusive</td>
+    <td class="tdata centeralign col6">0.74 [0.70, 0.81], inconclusive</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Australia</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.64 [0.38, 0.76], falsified</td>
+    <td class="tdata centeralign col5">0.64 [0.51, 0.75], falsified</td>
+    <td class="tdata centeralign col6">0.64 [0.52, 0.76], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Brazil</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.43 [0.17, 0.50], falsified</td>
+    <td class="tdata centeralign col5">0.41 [0.32, 0.56], falsified</td>
+    <td class="tdata centeralign col6">0.41 [0.32, 0.58], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Canada</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.53 [0.44, 0.73], falsified</td>
+    <td class="tdata centeralign col5">0.64 [0.55, 0.77], falsified</td>
+    <td class="tdata centeralign col6">0.64 [0.54, 0.76], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Germany</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.59 [0.37, 0.72], falsified</td>
+    <td class="tdata centeralign col5">0.64 [0.52, 0.77], falsified</td>
+    <td class="tdata centeralign col6">0.65 [0.52, 0.77], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Lebanon</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.23 [0.08, 0.36], falsified</td>
+    <td class="tdata centeralign col5">0.23 [0.16, 0.48], falsified</td>
+    <td class="tdata centeralign col6">0.24 [0.18, 0.49], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_Morocco</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.23 [0.14, 0.36], falsified</td>
+    <td class="tdata centeralign col5">0.27 [0.21, 0.47], falsified</td>
+    <td class="tdata centeralign col6">0.28 [0.23, 0.47], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol col1">H2</td>
+    <td class="tdata centeralign col2">Study3_CMQ_South Africa</td>
+    <td class="tdata centeralign col3">CB</td>
+    <td class="tdata centeralign col4">0.19 [0.13, 0.35], falsified</td>
+    <td class="tdata centeralign col5">0.28 [0.20, 0.48], falsified</td>
+    <td class="tdata centeralign col6">0.30 [0.20, 0.49], falsified</td>
+    <td class="tdata centeralign col7">yes</td>
+</tr>
+  <tr>
+    <td class="tdata firsttablecol lasttablerow col1">H2</td>
+    <td class="tdata centeralign lasttablerow col2">Study3_CMQ_United States</td>
+    <td class="tdata centeralign lasttablerow col3">CB</td>
+    <td class="tdata centeralign lasttablerow col4">0.39 [0.30, 0.66], falsified</td>
+    <td class="tdata centeralign lasttablerow col5">0.57 [0.37, 0.69], falsified</td>
+    <td class="tdata centeralign lasttablerow col6">0.57 [0.39, 0.69], falsified</td>
+    <td class="tdata centeralign lasttablerow col7">yes</td>
+</tr>
+</table>
+
+</body></html>

@@ -1,0 +1,677 @@
+---
+title: "4 - Networks, H2"
+output: html_document
+---
+
+# Input
+
+```{r}
+#Libraries
+library(pacman)
+p_load(lavaan, rio, tidyverse, psych, here, stargazer, summarytools, visdat,
+       EGAnet, qgraph, ggplot2, haven, janitor, readxl, labelled, reshape2,
+       openxlsx, mgm, bootnet, conflicted, magick, cocron, lme4, broom.mixed, 
+       patchwork, huge, grid)
+
+#Options
+rm(list = ls())
+options(scipen = 999)
+#conflicts
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+
+# Data
+# master_datasets.rds is built by script 1 and is included in this repository, so this script
+# runs as-is. The raw Study 2 and Study 3 files that script 1 starts from are not redistributed
+# here: see the note at the top of 1_Data_Managment.Rmd, or "Data sources" in the README,
+# for how to download them from the Harvard Dataverse.
+master_datasets <- readRDS(here("Input", "Secondary", "master_datasets.rds"))
+```
+
+# Processing
+
+## Preparation
+
+```{r}
+# Initialize an empty list for H2
+H2_matrices <- list()
+
+# Loop through the master list to extract and split data 
+for (study_name in names(master_datasets)) {
+  
+  df <- master_datasets[[study_name]]
+  
+  # For H2 we keep only country, the CB sum-score, and individual cm_ items
+  df_clean <- df %>%
+    select(country, CB, starts_with("cm_")) %>%
+    na.omit()
+  
+  # Split by country
+  split_df <- split(df_clean[, setdiff(names(df_clean), "country")], df_clean$country)
+  
+  # Convert to matrices, apply nonparanormal transformation, and assign names
+  for (country_name in names(split_df)) {
+    list_name <- paste0(study_name, "_", country_name)
+    
+    # 1. Convert to raw matrix
+    raw_matrix <- as.matrix(split_df[[country_name]])
+    
+    # 2. Apply the nonparanormal transformation directly
+    # This relaxes Gaussian assumptions for the skewed conspiracy items
+    H2_matrices[[list_name]] <- huge.npn(raw_matrix, verbose = FALSE)
+  }
+}
+```
+
+## Network estimation and plotting
+
+```{r}
+# ONE ESTIMATOR FOR THE WHOLE PAPER.
+# Every network in this paper, drawn or analysed, is estimated with mgm() under EBIC
+# (lambdaGam = 0.25) and the AND rule. These are exactly the settings bootnet(default = "mgm")
+# applies internally, so the pictures below show the same networks the Strength estimates,
+# the bootstrap intervals and the difference tests are computed on. Script 6 re-runs the
+# H1 and H2 analyses under cross-validation, with the AND and then the OR rule. Ranks are
+# identical in all 34 networks and verdicts in 32 of 34; the German and British H1 networks
+# move from falsified to inconclusive, which Section 5.5 reports.
+# The seed is kept for the layout algorithm rather than for the fit: EBIC selection is
+# deterministic, but qgraph's spring placement is not.
+set.seed(123)
+
+# Maintain color consistency: Purple for CM items, Green for CB Index
+Totalgroup_cols_H2 <- c("#966FD6", "#006B3C") 
+
+for (name in names(H2_matrices)) {
+  
+  data_matrix <- H2_matrices[[name]]
+  n_vars <- ncol(data_matrix)
+  node_names <- colnames(data_matrix)
+  
+  # Generate type and level (all Gaussian after huge.npn)
+  type_vec <- rep("g", n_vars)
+  level_vec <- rep(1, n_vars)
+  
+  # Estimation using MGM
+  mgm_result <- mgm(
+    data_matrix, type = type_vec, level = level_vec,
+    lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND", verbose = FALSE, pbar = FALSE
+  )
+  
+  # Predictability (R2 pie charts)
+  pred_result <- predict(object = mgm_result, data = data_matrix, errorCon = 'R2')
+  
+  # Assign groups for H2: CM items vs. the single CB sum-score
+  groups_H2 <- list(
+    "CM items" = which(grepl("^cm_", node_names)),
+    "CB Index" = which(node_names == "CB")
+  )
+  
+  # Output path for high-res PNG
+  output_path <- here("Output", "H2", "Country_networks", paste0(name, ".png"))
+
+  # Open PNG device (High Resolution)
+  png(output_path, width = 4.15, height = 5.85, units = "in", res = 600)
+
+  # Generate the qgraph plot 
+  qgraph(
+    mgm_result$pairwise$wadj, 
+    layout = "spring", 
+    labels = node_names,
+    groups = groups_H2,   
+    color = Totalgroup_cols_H2, 
+    legend = FALSE,
+    title = name, 
+    edge.color = mgm_result$pairwise$edgecolor_cb, # colourblind-safe, as in scripts 2 and 3
+    vTrans = 180, 
+    borders = TRUE, 
+    vsize = 10, 
+    esize = 7, 
+    label.cex = 0.50,
+    label.scale = FALSE, 
+    pie = pred_result$errors[,2], 
+    pieColor = rep('#FFFF00', n_vars)
+  )
+
+  dev.off()
+}
+```
+
+```{r}
+# Directories (Updated to H2)
+input_dir <- here("Output", "H2", "Country_networks")
+output_dir <- here("Output", "H2", "Composite_Figures")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Fetch all PNGs 
+all_pngs <- list.files(input_dir, pattern = "\\.png$", full.names = TRUE)
+
+# --- STUDY 1: 8 Countries ---
+study1_files <- all_pngs[grepl("Study1", all_pngs)]
+if (length(study1_files) == 8) {
+  
+  imgs_1a <- lapply(study1_files[1:4], image_read)
+  imgs_1b <- lapply(study1_files[5:8], image_read)
+  
+  comp_1a <- image_montage(image_join(imgs_1a), tile = "2x2", geometry = "+50+50")
+  comp_1b <- image_montage(image_join(imgs_1b), tile = "2x2", geometry = "+50+50")
+  
+  # Save (Updated names to H2)
+  image_write(comp_1a, path = here(output_dir, "H2_Study1_Composite_A.png"), format = "png")
+  image_write(comp_1b, path = here(output_dir, "H2_Study1_Composite_B.png"), format = "png")
+}
+
+# --- STUDY 2: 1 Country ---
+study2_files <- all_pngs[grepl("Study2", all_pngs)]
+if (length(study2_files) == 1) {
+  file.copy(from = study2_files[1], to = here(output_dir, "H2_Study2_Composite.png"), overwrite = TRUE)
+}
+
+# --- STUDY 3 (CMQ): 8 Countries ---
+study3_cmq_files <- all_pngs[grepl("Study3_CMQ", all_pngs)]
+if (length(study3_cmq_files) == 8) {
+  
+  imgs_3a_cmq <- lapply(study3_cmq_files[1:4], image_read)
+  imgs_3b_cmq <- lapply(study3_cmq_files[5:8], image_read)
+  
+  comp_3a_cmq <- image_montage(image_join(imgs_3a_cmq), tile = "2x2", geometry = "+50+50")
+  comp_3b_cmq <- image_montage(image_join(imgs_3b_cmq), tile = "2x2", geometry = "+50+50")
+  
+  # Save (Updated names to H2)
+  image_write(comp_3a_cmq, path = here(output_dir, "H2_Study3_CMQ_Composite_A.png"), format = "png")
+  image_write(comp_3b_cmq, path = here(output_dir, "H2_Study3_CMQ_Composite_B.png"), format = "png")
+}
+```
+
+
+## Bootstrapping
+
+```{r}
+# # Set seed for exact reproducibility
+# set.seed(123)
+# 
+# # Initialize empty list
+# boot_results_H2 <- list()
+# 
+# # Loop across all H2 matrices dynamically
+# for (name in names(H2_matrices)) {
+#   cat("Bootstrapping", name, "...\n")
+#   
+#   country_matrix <- H2_matrices[[name]]
+#   
+#   # Simplified bootnet call.
+#   # bootnet(default = "mgm") runs mgm() with lambdaSel = "EBIC" (lambdaGam = 0.25) and
+#   # ruleReg = "AND". Those are the settings the plotting loop above uses, so the drawn
+#   # networks and the bootstrapped Strength estimates are the same networks.
+#   boot_result <- bootnet(
+#     country_matrix,
+#     nBoots = 1000,
+#     nCores = 16, 
+#     default = "mgm",
+#     statistics = "strength"
+#   )
+#     
+#   boot_results_H2[[name]] <- boot_result
+# }
+# 
+# # Save locally to H2 specific master file
+# saveRDS(boot_results_H2, here("Input", "Secondary", "boot_H2_master.rds"))
+
+# Load to save time
+boot_results_H2 <- readRDS(here("Input", "Secondary", "boot_H2_master.rds"))
+```
+
+## Final visualization for the paper
+
+```{r}
+# manage data again
+H1_matrices <- list()
+H2_matrices <- list()
+
+for (study_name in names(master_datasets)) {
+  df <- master_datasets[[study_name]]
+  
+  # Re-build H1 matrices 
+  df_h1 <- df %>% select(country, CM, starts_with("cb_")) %>% na.omit()
+  split_h1 <- split(df_h1[, setdiff(names(df_h1), "country")], df_h1$country)
+  for (cn in names(split_h1)) {
+    H1_matrices[[paste0(study_name, "_", cn)]] <- huge.npn(as.matrix(split_h1[[cn]]), verbose = FALSE)
+  }
+  
+  # Re-build H2 matrices 
+  df_h2 <- df %>% select(country, CB, starts_with("cm_")) %>% na.omit()
+  split_h2 <- split(df_h2[, setdiff(names(df_h2), "country")], df_h2$country)
+  for (cn in names(split_h2)) {
+    H2_matrices[[paste0(study_name, "_", cn)]] <- huge.npn(as.matrix(split_h2[[cn]]), verbose = FALSE)
+  }
+}
+
+# load h1 results
+boot_results_H1 <- readRDS(here("Input", "Secondary", "boot_H1_master.rds"))
+
+
+# process boots again
+process_boots <- function(boot_list, matrix_list, hypo_label) {
+  lapply(names(boot_list), function(name) {
+    boot_table <- boot_list[[name]][["bootTable"]]
+    values <- boot_table[["value"]]
+    node_names <- colnames(matrix_list[[name]])
+    n_nodes <- length(node_names)
+    # same safety check on the bootTable ordering
+    stopifnot(all(as.character(boot_table[["node1"]]) ==
+                    rep(node_names, length.out = nrow(boot_table))))
+    df <- as.data.frame(matrix(values, ncol = n_nodes, byrow = TRUE))
+    colnames(df) <- node_names
+    df$Dataset <- name
+    df$Hypothesis <- hypo_label
+    melt(df, id.vars = c("Dataset", "Hypothesis"), variable.name = "Node", value.name = "Centrality")
+  }) %>% bind_rows()
+}
+
+long_h1 <- process_boots(boot_results_H1, H1_matrices, "H1")
+long_h2 <- process_boots(boot_results_H2, H2_matrices, "H2")
+all_long_data <- bind_rows(long_h1, long_h2)
+
+# Labeling 
+all_long_data <- all_long_data %>%
+  mutate(
+    CountryRaw = str_remove_all(Dataset, "Study1_SUSPECTS_|Study2_ACTS_|Study3_CMQ_"),
+    CountryName = case_when(
+      CountryRaw == "DEU" ~ "Germany",
+      CountryRaw == "ESP" ~ "Spain",
+      CountryRaw == "FRA" ~ "France",
+      CountryRaw == "GBR" ~ "United Kingdom",
+      CountryRaw == "ITA" ~ "Italy",
+      CountryRaw == "POL" ~ "Poland",
+      CountryRaw == "SWE" ~ "Sweden",
+      CountryRaw %in% c("USA", "USA_ACTS") ~ "United States",
+      TRUE ~ CountryRaw
+    ),
+    Scale = case_when(
+      grepl("Study1", Dataset) ~ "GCB5",
+      grepl("Study2", Dataset) ~ "ACTS",
+      grepl("Study3_CMQ", Dataset) ~ "CMQ"
+    )
+  )
+
+all_ci_data <- all_long_data %>%
+  group_by(CountryName, Scale, Node, Hypothesis) %>%
+  summarise(lower = quantile(Centrality, probs = 0.025),
+            upper = quantile(Centrality, probs = 0.975), .groups = "drop")
+```
+
+```{r}
+#Define a global theme
+theme_masterpiece <- function() {
+  theme_minimal(base_size = 11, base_family = "serif") +
+    theme(
+      # Text elements
+      text = element_text(family = "serif", color = "#1A1A1A"),
+      plot.title = element_text(face = "bold", size = 15, family = "serif", hjust = 0.5, margin = margin(b = 15)),
+      plot.tag = element_text(face = "bold", size = 22, family = "serif"),
+      
+      # Facet Strip
+      strip.background = element_rect(fill = "#EFEFEF", color = "#333333", size = 0.6),
+      strip.text = element_text(face = "bold", size = 10, family = "serif", color = "#1A1A1A"),
+      
+      # Grid Logic
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(color = "#D1D1D1", size = 0.4, linetype = "dotted"),
+      
+      # Background
+      panel.background = element_rect(fill = "white", color = "#333333", size = 0.7),
+      plot.background = element_rect(fill = "#F9F9F7", color = NA), 
+      
+      # Axis Styling
+      axis.title.y = element_text(face = "bold", size = 12, margin = margin(r = 12)),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 8.5, color = "black", face = "bold"),
+      axis.text.y = element_text(size = 9.5, color = "black"),
+      axis.line = element_line(color = "#333333", size = 0.5),
+      
+      # Legend 
+      legend.position = "none",
+      plot.margin = margin(5, 5, 5, 5)
+    )
+}
+
+# High-Contrast "Scientific" Colors
+node_colors <- c("Index" = "#702963", "Item" = "#008080")
+```
+
+```{r}
+# Saving the article figures.
+#
+# Every article figure is written twice, into Output/Figures/:
+#   - a PNG at 600 dpi, named after the figure caption, for reading in this repository;
+#   - a vector PDF named Figure_1.pdf ... Figure_4.pdf, for the publisher.
+#
+# The canvas is 180 x 220 mm. Wiley asks for artwork created between 80 and 180 mm wide,
+# so 180 mm is the full-width option and it means production does not have to rescale
+# anything: the point sizes in theme_masterpiece() are what gets printed. Their naming
+# rule for production files is the word "figure" plus the number and nothing else, which
+# is why the PDFs are named that way and only the PNGs carry the descriptive titles.
+
+fig_dir <- here("Output", "Figures")
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
+
+FIG_W_MM <- 180
+FIG_H_MM <- 220
+mm_to_in <- function(x) x / 25.4
+
+# Descriptive names for the PNGs, mirroring the captions in the article.
+# No colons: they are illegal in Windows file names and awkward everywhere else.
+fig_titles <- c(
+  "1" = "Figure 1 - conspiracy belief systems in the U.S",
+  "2" = "Figure 2 - Study 1 results",
+  "3" = "Figure 3 - Study 2 results",
+  "4" = "Figure 4 - Study 3 results"
+)
+
+save_article_figure <- function(plot_obj, number,
+                                width_mm = FIG_W_MM, height_mm = FIG_H_MM) {
+
+  w <- mm_to_in(width_mm)
+  h <- mm_to_in(height_mm)
+
+  # Vector version for production
+  ggsave(file.path(fig_dir, paste0("Figure_", number, ".pdf")),
+         plot = plot_obj, device = cairo_pdf,
+         width = w, height = h, units = "in")
+
+  # Raster version for the repository
+  ggsave(file.path(fig_dir, paste0(fig_titles[[as.character(number)]], ".png")),
+         plot = plot_obj, device = "png", type = "cairo",
+         width = w, height = h, units = "in", dpi = 600)
+
+  invisible(NULL)
+}
+```
+
+### Study 1
+
+```{r}
+# Panel A
+p1_s1 <- all_long_data %>% 
+  filter(Scale == "GCB5", Hypothesis == "H1") %>%
+  ggplot(aes(x = Node, y = Centrality)) +
+  geom_boxplot(aes(color = ifelse(Node == "CM", "Index", "Item")), 
+               width = 0.4, outlier.shape = NA, fill = "white", size = 0.7, coef = 0) +
+  geom_errorbar(data = filter(all_ci_data, Scale == "GCB5", Hypothesis == "H1"),
+                aes(x = Node, ymin = lower, ymax = upper), 
+                width = 0.15, color = "black", linewidth = 0.6, inherit.aes = FALSE) +
+  facet_wrap(~ CountryName, ncol = 4) +
+  scale_color_manual(values = node_colors) +
+  labs(y = "Strength Centrality", tag = "A", title = "H1") +
+  theme_masterpiece() +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5, margin = margin(b = 10)))
+
+# Panel b
+p2_s1 <- all_long_data %>% 
+  filter(Scale == "GCB5", Hypothesis == "H2") %>%
+  ggplot(aes(x = Node, y = Centrality)) +
+  geom_boxplot(aes(color = ifelse(Node == "CB", "Index", "Item")), 
+               width = 0.4, outlier.shape = NA, fill = "white", size = 0.7, coef = 0) +
+  geom_errorbar(data = filter(all_ci_data, Scale == "GCB5", Hypothesis == "H2"),
+                aes(x = Node, ymin = lower, ymax = upper), 
+                width = 0.15, color = "black", linewidth = 0.6, inherit.aes = FALSE) +
+  facet_wrap(~ CountryName, ncol = 4) +
+  scale_color_manual(values = node_colors) +
+  labs(y = "Strength Centrality", tag = "B", title = "H2") +
+  theme_masterpiece() +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5, margin = margin(b = 10)))
+
+# together
+combined_s1 <- (p1_s1 / p2_s1) + 
+  plot_layout(heights = c(1, 1)) & 
+  theme(
+    plot.tag = element_text(face = "bold", size = 20),
+    axis.title.x = element_blank(),
+    # 9 rotated labels inside a 45 mm facet collide at the theme's 8.5 pt on
+    # Wiley's 180 mm canvas, which is narrower than the one these panels were
+    # first drawn on. 6 pt clears them.
+    axis.text.x = element_text(size = 6)
+  )
+
+# Figure 2 in the article
+save_article_figure(combined_s1, number = 2)
+```
+
+### Study 2
+
+```{r}
+# A
+p1_s2 <- all_long_data %>% 
+  filter(Scale == "ACTS", Hypothesis == "H1") %>%
+  ggplot(aes(x = Node, y = Centrality)) +
+  geom_boxplot(aes(color = ifelse(Node == "CM", "Index", "Item")), 
+               width = 0.3, fill = "white", size = 0.7, 
+               outlier.shape = NA, coef = 0) + 
+  geom_errorbar(data = filter(all_ci_data, Scale == "ACTS", Hypothesis == "H1"),
+                aes(x = Node, ymin = lower, ymax = upper), 
+                width = 0.1, color = "black", linewidth = 0.8, inherit.aes = FALSE) +
+  facet_wrap(~ CountryName, ncol = 1) +
+  scale_color_manual(values = node_colors) + 
+  labs(y = "Strength Centrality", tag = "A", title = "H1") + 
+  theme_masterpiece() +
+  theme(plot.title = element_text(size = 15, face = "bold", hjust = 0.5, margin = margin(b = 10)))
+
+# B
+p2_s2 <- all_long_data %>% 
+  filter(Scale == "ACTS", Hypothesis == "H2") %>%
+  ggplot(aes(x = Node, y = Centrality)) +
+  geom_boxplot(aes(color = ifelse(Node == "CB", "Index", "Item")), 
+               width = 0.3, fill = "white", size = 0.7, 
+               outlier.shape = NA, coef = 0) +
+  geom_errorbar(data = filter(all_ci_data, Scale == "ACTS", Hypothesis == "H2"),
+                aes(x = Node, ymin = lower, ymax = upper), 
+                width = 0.1, color = "black", linewidth = 0.8, inherit.aes = FALSE) +
+  facet_wrap(~ CountryName, ncol = 1) +
+  scale_color_manual(values = node_colors) + 
+  labs(y = "Strength Centrality", tag = "B", title = "H2") + 
+  theme_masterpiece() +
+  theme(plot.title = element_text(size = 15, face = "bold", hjust = 0.5, margin = margin(b = 10)))
+
+# Together
+combined_s2 <- (p1_s2 / p2_s2) + 
+  plot_layout(heights = c(1, 1)) & 
+  theme(
+    plot.tag = element_text(face = "bold", size = 20),
+    axis.title.x = element_blank(),
+    # 9 rotated labels inside a 45 mm facet collide at the theme's 8.5 pt on
+    # Wiley's 180 mm canvas, which is narrower than the one these panels were
+    # first drawn on. 6 pt clears them.
+    axis.text.x = element_text(size = 6)
+  )
+
+# Figure 3 in the article
+save_article_figure(combined_s2, number = 3)
+```
+
+### Study 3
+
+```{r}
+# A
+p1_s3 <- all_long_data %>% 
+  filter(Scale == "CMQ", Hypothesis == "H1") %>%
+  ggplot(aes(x = Node, y = Centrality)) +
+  geom_boxplot(aes(color = ifelse(Node == "CM", "Index", "Item")), 
+               width = 0.4, outlier.shape = NA, fill = "white", size = 0.7, coef = 0) +
+  geom_errorbar(data = filter(all_ci_data, Scale == "CMQ", Hypothesis == "H1"),
+                aes(x = Node, ymin = lower, ymax = upper), 
+                width = 0.15, color = "black", linewidth = 0.6, inherit.aes = FALSE) +
+  facet_wrap(~ CountryName, ncol = 4) +
+  scale_color_manual(values = node_colors) +
+  labs(y = "Strength Centrality", tag = "A", title = "H1") +
+  theme_masterpiece() +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5, margin = margin(b = 10)))
+
+# B
+p2_s3 <- all_long_data %>% 
+  filter(Scale == "CMQ", Hypothesis == "H2") %>%
+  ggplot(aes(x = Node, y = Centrality)) +
+  geom_boxplot(aes(color = ifelse(Node == "CB", "Index", "Item")), 
+               width = 0.4, outlier.shape = NA, fill = "white", size = 0.7, coef = 0) +
+  geom_errorbar(data = filter(all_ci_data, Scale == "CMQ", Hypothesis == "H2"),
+                aes(x = Node, ymin = lower, ymax = upper), 
+                width = 0.15, color = "black", linewidth = 0.6, inherit.aes = FALSE) +
+  facet_wrap(~ CountryName, ncol = 4) +
+  scale_color_manual(values = node_colors) +
+  labs(y = "Strength Centrality", tag = "B", title = "H2") +
+  theme_masterpiece() +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5, margin = margin(b = 10)))
+
+# Together
+combined_s3 <- (p1_s3 / p2_s3) + 
+  plot_layout(heights = c(1, 1)) & 
+  theme(
+    plot.tag = element_text(face = "bold", size = 20),
+    axis.title.x = element_blank(),
+    # 9 rotated labels inside a 45 mm facet collide at the theme's 8.5 pt on
+    # Wiley's 180 mm canvas, which is narrower than the one these panels were
+    # first drawn on. 6 pt clears them.
+    axis.text.x = element_text(size = 6)
+  )
+
+# Figure 4 in the article
+save_article_figure(combined_s3, number = 4)
+```
+
+### Analytical strategy plot
+
+```{r}
+# a figure explaining the logic behind our networks
+
+# manage data as before
+df_usa <- master_datasets[["Study1_SUSPECTS"]] %>% 
+  filter(country == "USA") %>% 
+  select(CM, CB, starts_with("cb_"), starts_with("cm_")) %>% 
+  na.omit()
+
+m0 <- huge.npn(as.matrix(df_usa %>% select(starts_with("cb_"), starts_with("cm_"))), verbose = FALSE)
+m1 <- huge.npn(as.matrix(df_usa %>% select(CM, starts_with("cb_"))), verbose = FALSE)
+m2 <- huge.npn(as.matrix(df_usa %>% select(CB, starts_with("cm_"))), verbose = FALSE)
+
+# colors
+cols_index <- "#702963"
+cols_item  <- "#008080"
+
+# Fit the three networks once.
+# Same estimator as everywhere else in the paper: EBIC with lambdaGam = 0.25 and the AND
+# rule, i.e. the settings bootnet(default = "mgm") uses for the Strength estimates in
+# Figures 2 to 4. EBIC selection is deterministic, so these three fits do not depend on the
+# seed; it is set for the layout algorithm below.
+set.seed(123)
+
+fit0 <- mgm(m0, type = rep("g", ncol(m0)), level = rep(1, ncol(m0)),
+            lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND", verbose = FALSE, pbar = FALSE)
+fit1 <- mgm(m1, type = rep("g", ncol(m1)), level = rep(1, ncol(m1)),
+            lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND", verbose = FALSE, pbar = FALSE)
+fit2 <- mgm(m2, type = rep("g", ncol(m2)), level = rep(1, ncol(m2)),
+            lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND", verbose = FALSE, pbar = FALSE)
+
+# Freeze the spring layouts.
+#
+# Two problems forced this. First, qgraph rescales a "spring" layout to the plotting region,
+# so the same network laid out on two devices with different aspect ratios comes out arranged
+# differently, and this figure is written to both a PNG and a PDF. Second, the
+# Fruchterman-Reingold placement is not reproducible: it varies from session to session, and
+# set.seed() does not control it, because the randomness is not in R's RNG. I checked this
+# directly - three fresh sessions with set.seed(123) returned layouts summing to 14.233,
+# 14.208 and 14.187.
+#
+# So I compute the coordinates once and keep them. The two output files then show the same
+# picture, and anyone re-running this script gets the figure that is in the paper rather than
+# a new arrangement of it. Delete the .rds if you want to draw a fresh layout.
+#
+# The stored coordinates were regenerated for the EBIC/AND networks. A layout computed on the
+# older CV/OR fits would place nodes for a network that is no longer the one being drawn, so
+# the file was deleted and rebuilt when the estimator changed.
+
+layout_file <- here("Input", "Secondary", "figure1_layouts.rds")
+
+if (file.exists(layout_file)) {
+  figure1_layouts <- readRDS(layout_file)
+} else {
+  fixed_layout <- function(fit) {
+    qgraph(fit$pairwise$wadj, layout = "spring", minimum = 0.03, DoNotPlot = TRUE)$layout
+  }
+  figure1_layouts <- list(H0 = fixed_layout(fit0),
+                          H1 = fixed_layout(fit1),
+                          H2 = fixed_layout(fit2))
+  saveRDS(figure1_layouts, layout_file)
+}
+
+lay0 <- figure1_layouts$H0
+lay1 <- figure1_layouts$H1
+lay2 <- figure1_layouts$H2
+
+# The layouts must match the networks they are drawn on
+stopifnot(nrow(lay0) == ncol(m0), nrow(lay1) == ncol(m1), nrow(lay2) == ncol(m2))
+
+# function to plot networks
+# Node size is set per panel. The three panels hold 13, 9 and 6 nodes in strips of the same
+# width, so a single vsize either crowds H0 or leaves H2 looking sparse.
+plot_usa_net_titled <- function(fit, layout_matrix, labs, groups, title_text, vsize) {
+
+  qgraph(fit$pairwise$wadj,
+         layout = layout_matrix,
+         labels = labs,
+         groups = groups,
+         color = c(cols_index, cols_item),
+         edge.color = fit$pairwise$edgecolor_cb,
+         minimum = 0.03,
+         title = title_text,
+         title.cex = 2.5,
+         vsize = vsize,
+         label.cex = 1.1,
+         edge.width = 1,
+         trans = 0.8,
+         borders = TRUE,
+         border.width = 1.5,
+         legend = FALSE,
+         mar = c(4, 4, 7, 4))
+}
+
+# Assembly.
+# This one is base graphics rather than ggplot, so it cannot go through
+# save_article_figure(). I draw it twice instead, once per device, from the same code.
+
+draw_figure_1 <- function() {
+  # H0 gets the tallest strip because it carries all 13 items at once
+  layout(matrix(1:3, ncol = 1), heights = c(1.35, 1, 0.95))
+  par(family = "serif", font.main = 2)
+
+  # H0
+  plot_usa_net_titled(fit0, lay0, colnames(m0),
+                      list("CB" = which(startsWith(colnames(m0), "cb_")),
+                           "CM" = which(startsWith(colnames(m0), "cm_"))),
+                      "H0", vsize = 11)
+  # H1
+  plot_usa_net_titled(fit1, lay1, colnames(m1),
+                      list("Index" = 1, "Items" = 2:ncol(m1)),
+                      "H1", vsize = 14)
+  # H2
+  plot_usa_net_titled(fit2, lay2, colnames(m2),
+                      list("Index" = 1, "Items" = 2:ncol(m2)),
+                      "H2", vsize = 15)
+}
+
+# Vector version for production
+# Figure 1 is taller than the others: three stacked networks need the room.
+FIG1_H_MM <- 240
+
+cairo_pdf(file.path(fig_dir, "Figure_1.pdf"),
+          width = mm_to_in(FIG_W_MM), height = mm_to_in(FIG1_H_MM),
+          bg = "#F9F9F7")
+draw_figure_1()
+dev.off()
+
+# Raster version for the repository
+png(file.path(fig_dir, paste0(fig_titles[["1"]], ".png")),
+    width = mm_to_in(FIG_W_MM), height = mm_to_in(FIG1_H_MM), units = "in", res = 600,
+    type = "cairo", bg = "#F9F9F7")
+draw_figure_1()
+dev.off()
+
+```
+

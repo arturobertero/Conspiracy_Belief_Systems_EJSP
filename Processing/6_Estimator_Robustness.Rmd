@@ -1,0 +1,261 @@
+---
+title: "6 - Estimator robustness"
+output: html_document
+---
+
+Every network in this paper is estimated with `mgm()` under EBIC (`lambdaGam = 0.25`) and the
+AND rule, which are the settings `bootnet(default = "mgm")` applies internally. That choice
+departs from the defaults of the `mgm` package itself, which are cross-validation for the
+tuning parameter and the AND rule for combining the nodewise regressions.
+
+This script asks whether the departure matters. It repeats the entire H1 and H2 analysis,
+bootstraps and difference tests included, under two alternative specifications:
+
+- **CV, AND**, the `mgm` package default. Only the tuning criterion changes, so this
+  isolates the effect of the criterion.
+- **CV, OR**, cross-validation with the OR rule. This is the setting used to draw the
+  network figures in the originally submitted version of the manuscript, kept here so the
+  record is complete.
+
+The output is Table S10 of the Supplement: the verdict for each of the 34 country-networks
+under all three specifications.
+
+# Input
+
+```{r}
+library(pacman)
+p_load(tidyverse, here, mgm, bootnet, huge, conflicted, sjPlot)
+
+rm(list = ls())
+options(scipen = 999)
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+
+master_datasets <- readRDS(here("Input", "Secondary", "master_datasets.rds"))
+
+out_dir <- here("Output", "Estimator_Robustness")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+alt_file <- here("Input", "Secondary", "boot_alt_master.rds")
+
+# The bootstraps below take roughly 70 minutes per specification on 16 cores, so they are
+# not run by default: boot_alt_master.rds ships with the repository. Set this to TRUE to
+# re-run them from scratch.
+RUN_BOOTSTRAPS <- FALSE
+```
+
+# Matrices
+
+```{r}
+# Identical construction to scripts 3 and 4, so the networks are the same objects.
+# The summary node (CM in H1, CB in H2) is always the first column.
+H1_matrices <- list()
+H2_matrices <- list()
+
+for (study_name in names(master_datasets)) {
+  df <- master_datasets[[study_name]]
+
+  df_h1 <- df %>% select(country, CM, starts_with("cb_")) %>% na.omit()
+  split_h1 <- split(df_h1[, setdiff(names(df_h1), "country")], df_h1$country)
+  for (cn in names(split_h1)) {
+    H1_matrices[[paste0(study_name, "_", cn)]] <-
+      huge.npn(as.matrix(split_h1[[cn]]), verbose = FALSE)
+  }
+
+  df_h2 <- df %>% select(country, CB, starts_with("cm_")) %>% na.omit()
+  split_h2 <- split(df_h2[, setdiff(names(df_h2), "country")], df_h2$country)
+  for (cn in names(split_h2)) {
+    H2_matrices[[paste0(study_name, "_", cn)]] <-
+      huge.npn(as.matrix(split_h2[[cn]]), verbose = FALSE)
+  }
+}
+
+cat("H1 networks:", length(H1_matrices), " H2 networks:", length(H2_matrices), "\n")
+```
+
+# Bootstraps under the alternative specifications
+
+```{r}
+SPECS <- list(
+  CV_AND = list(criterion = "CV", rule = "AND"),
+  CV_OR  = list(criterion = "CV", rule = "OR")
+)
+
+if (RUN_BOOTSTRAPS) {
+
+  boot_alt <- list()
+
+  for (spec_name in names(SPECS)) {
+    spec <- SPECS[[spec_name]]
+    boot_alt[[spec_name]] <- list()
+
+    for (hyp in c("H1", "H2")) {
+      mats <- if (hyp == "H1") H1_matrices else H2_matrices
+      boot_alt[[spec_name]][[hyp]] <- list()
+
+      for (nm in names(mats)) {
+        cat(spec_name, hyp, nm, "...\n")
+        # Seeded per network so a single network can be re-run on its own and reproduce.
+        set.seed(123)
+        boot_alt[[spec_name]][[hyp]][[nm]] <- bootnet(
+          mats[[nm]],
+          nBoots     = 1000,
+          nCores     = 16,
+          default    = "mgm",
+          criterion  = spec$criterion,
+          rule       = spec$rule,
+          statistics = "strength",
+          verbose    = FALSE
+        )
+      }
+    }
+  }
+
+  saveRDS(boot_alt, alt_file)
+}
+
+boot_alt <- readRDS(alt_file)
+```
+
+# Difference tests
+
+```{r}
+# The same decision rule as script 7, applied unchanged to each alternative specification.
+#
+#   supported    = the summary node is reliably MORE central than every other node
+#   falsified    = the summary node is reliably LESS central than every other node
+#   inconclusive = neither
+
+diff_test <- function(boot_list, hyp) {
+  map_dfr(names(boot_list), function(nm) {
+
+    x  <- boot_list[[nm]]
+    lb <- x$sample$labels
+    summ <- lb[1]
+
+    bt <- x$bootTable
+    stopifnot(all(as.character(bt$node1) == rep(lb, length.out = nrow(bt))))
+
+    M <- matrix(bt$value, ncol = length(lb), byrow = TRUE)
+    colnames(M) <- lb
+
+    others <- setdiff(lb, summ)
+    d  <- vapply(others, function(o) quantile(M[, summ] - M[, o], c(.025, .975)),
+                 numeric(2))
+
+    st <- colSums(abs(x$sample$graph)); names(st) <- lb
+
+    data.frame(
+      Hypothesis    = hyp,
+      Network       = nm,
+      Summary_node  = summ,
+      N_nodes       = length(lb),
+      Strength      = round(unname(st[summ]), 3),
+      CI_lower      = round(unname(quantile(M[, summ], .025)), 3),
+      CI_upper      = round(unname(quantile(M[, summ], .975)), 3),
+      Rank          = as.integer(rank(-st)[1]),
+      N_sig_higher  = sum(d[1, ] > 0),
+      N_sig_lower   = sum(d[2, ] < 0),
+      N_comparisons = length(others),
+      Sig_highest   = all(d[1, ] > 0),
+      Sig_lowest    = all(d[2, ] < 0),
+      stringsAsFactors = FALSE
+    )
+  })
+}
+
+verdict_of <- function(df) {
+  df %>% mutate(Verdict = case_when(Sig_highest ~ "supported",
+                                    Sig_lowest  ~ "falsified",
+                                    TRUE        ~ "inconclusive"))
+}
+
+alt_results <- map_dfr(names(SPECS), function(spec_name) {
+  bind_rows(
+    diff_test(boot_alt[[spec_name]][["H1"]], "H1"),
+    diff_test(boot_alt[[spec_name]][["H2"]], "H2")
+  ) %>% verdict_of() %>% mutate(Spec = spec_name)
+})
+
+# The main specification, straight from the bootstraps used in the article.
+boot_results_H1 <- readRDS(here("Input", "Secondary", "boot_H1_master.rds"))
+boot_results_H2 <- readRDS(here("Input", "Secondary", "boot_H2_master.rds"))
+
+main_results <- bind_rows(diff_test(boot_results_H1, "H1"),
+                          diff_test(boot_results_H2, "H2")) %>%
+  verdict_of() %>% mutate(Spec = "EBIC_AND")
+
+all_results <- bind_rows(main_results, alt_results)
+write.csv(all_results, file.path(out_dir, "Estimator_Robustness_Full.csv"), row.names = FALSE)
+```
+
+# Comparison
+
+```{r}
+wide <- all_results %>%
+  select(Hypothesis, Network, Summary_node, Spec, Strength, CI_lower, CI_upper, Rank, Verdict) %>%
+  pivot_wider(names_from = Spec,
+              values_from = c(Strength, CI_lower, CI_upper, Rank, Verdict))
+
+wide <- wide %>%
+  mutate(
+    Verdicts_identical = Verdict_EBIC_AND == Verdict_CV_AND &
+                         Verdict_EBIC_AND == Verdict_CV_OR,
+    Ranks_identical    = Rank_EBIC_AND == Rank_CV_AND &
+                         Rank_EBIC_AND == Rank_CV_OR
+  )
+
+cat("Networks:", nrow(wide), "\n")
+cat("Verdict identical across all three specifications:", sum(wide$Verdicts_identical), "\n")
+cat("Summary-node rank identical across all three specifications:", sum(wide$Ranks_identical), "\n")
+
+cat("\nDisagreements, if any:\n")
+wide %>% filter(!Verdicts_identical) %>%
+  select(Hypothesis, Network, Verdict_EBIC_AND, Verdict_CV_AND, Verdict_CV_OR) %>%
+  as.data.frame() %>% print()
+
+write.csv(wide, file.path(out_dir, "Estimator_Robustness_Comparison.csv"), row.names = FALSE)
+```
+
+```{r}
+# Table S10, formatted for the Supplement.
+# as.data.frame(check.names = FALSE) at the end matters: tab_df() sanitises the column names
+# of a tibble, which turns "EBIC, AND (main)" into "EBIC..AND..main.".
+table_S10 <- wide %>%
+  transmute(
+    Hypothesis,
+    Network,
+    `Summary node` = Summary_node,
+    `EBIC, AND (main)` = sprintf("%.2f [%.2f, %.2f], %s",
+                                 Strength_EBIC_AND, CI_lower_EBIC_AND, CI_upper_EBIC_AND,
+                                 Verdict_EBIC_AND),
+    `CV, AND` = sprintf("%.2f [%.2f, %.2f], %s",
+                        Strength_CV_AND, CI_lower_CV_AND, CI_upper_CV_AND, Verdict_CV_AND),
+    `CV, OR`  = sprintf("%.2f [%.2f, %.2f], %s",
+                        Strength_CV_OR, CI_lower_CV_OR, CI_upper_CV_OR, Verdict_CV_OR),
+    Agreement = ifelse(Verdicts_identical, "yes", "no")
+  ) %>%
+  as.data.frame(check.names = FALSE)
+
+# tab_df() sanitises the column names it is given and tab_dfs() does not, so the table goes
+# through tab_dfs() as a one-element list and its HTML is written here. This is the same route
+# Tables S2, S5 and S8 take in script 8.
+s10 <- tab_dfs(
+  list(table_S10),
+  titles = paste("Table S10: estimator robustness. Strength of the summary node with its",
+                 "95% bootstrap interval and the verdict of the difference test, under the",
+                 "specification used in the article (EBIC, lambdaGam = 0.25, AND rule) and",
+                 "under two alternatives that select the tuning parameter by",
+                 "cross-validation. Each cell rests on 1,000 non-parametric bootstraps.")
+)
+target_s10 <- file.path(out_dir, "Table_S10_Estimator_Robustness.doc")
+writeLines(s10$page.complete, con = file(target_s10, encoding = "UTF-8"))
+stopifnot(file.exists(target_s10))
+
+table_S10
+```
+
+```{r}
+# Counts as they would be stated in the Supplement.
+all_results %>% count(Spec, Hypothesis, Verdict) %>% as.data.frame() %>% print()
+```

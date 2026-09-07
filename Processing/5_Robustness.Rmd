@@ -1,0 +1,583 @@
+---
+title: "5 - Robustness"
+output: html_document
+---
+
+# Input
+
+```{r}
+# Libraries
+library(pacman)
+p_load(tidyverse, here, mgm, bootnet, reshape2, ggplot2, huge, conflicted,
+       qgraph, patchwork, doParallel, foreach)
+
+# Options
+rm(list = ls())
+options(scipen = 999)
+conflicts_prefer(dplyr::filter, dplyr::select)
+
+# Data
+# master_datasets.rds is built by script 1 and is included in this repository, so this script
+# runs as-is. The raw Study 2 and Study 3 files that script 1 starts from are not redistributed
+# here: see the note at the top of 1_Data_Managment.Rmd, or "Data sources" in the README,
+# for how to download them from the Harvard Dataverse.
+master_datasets <- readRDS(here("Input", "Secondary", "master_datasets.rds"))
+```
+
+# Processing
+
+## Preparation
+
+```{r}
+H1_matrices_npn <- list()
+H2_matrices_npn <- list()
+Full_items_npn  <- list() 
+
+for (study_name in names(master_datasets)) {
+  df <- master_datasets[[study_name]]
+  
+  df_items <- df %>% select(country, starts_with("cm_"), starts_with("cb_")) %>% na.omit()
+  df_indices <- df %>% select(country, CM, CB) %>% na.omit() 
+  
+  countries <- unique(df_items$country)
+  
+  for (cn in countries) {
+    list_name <- paste0(study_name, "_", cn)
+    
+    # Transform ALL items once
+    raw_items <- as.matrix(df_items[df_items$country == cn, -1])
+    npn_items  <- huge.npn(raw_items, verbose = FALSE)
+    Full_items_npn[[list_name]] <- npn_items
+    
+    # Transform Indices
+    raw_indices <- as.matrix(df_indices[df_indices$country == cn, c("CM", "CB")])
+    npn_indices <- huge.npn(raw_indices, verbose = FALSE)
+    
+    # Build H1/H2 lists
+    H1_matrices_npn[[list_name]] <- cbind(CM = npn_indices[,"CM"], 
+                                         npn_items[, grep("^cb_", colnames(npn_items))])
+    
+    H2_matrices_npn[[list_name]] <- cbind(CB = npn_indices[,"CB"], 
+                                         npn_items[, grep("^cm_", colnames(npn_items))])
+  }
+}
+```
+
+## Montecarlo simulation
+
+```{r}
+# Register the 16 cores
+cl <- makeCluster(12)
+registerDoParallel(cl)
+
+# Ensure the seed is handled correctly for parallel processes
+set.seed(123)
+B <- 1000
+monte_carlo_results <- list()
+
+# Parallelized Loop
+for (name in names(Full_items_npn)) {
+    
+    data_matrix_npn <- Full_items_npn[[name]] 
+    all_cm <- grep("^cm_", colnames(data_matrix_npn), value = TRUE)
+    all_cb <- grep("^cb_", colnames(data_matrix_npn), value = TRUE)
+    k <- min(length(all_cm), length(all_cb))
+    
+    cat("Parallelizing Monte Carlo for:", name, "...\n")
+    
+    # foreach will run B times and combine results into a single dataframe
+    # .packages ensures each core knows what 'mgm' is
+    dataset_results <- foreach(i = 1:B, .combine = 'rbind', .packages = 'mgm') %dopar% {
+      
+      # Resample items
+      sampled_cm <- if(length(all_cm) > k) sample(all_cm, k) else all_cm
+      sampled_cb <- if(length(all_cb) > k) sample(all_cb, k) else all_cb
+      
+      iter_matrix <- data_matrix_npn[, c(sampled_cm, sampled_cb)]
+      
+      # Estimate MGM.
+      # Tuning is EBIC with lambdaGam = 0.25, as everywhere else in the paper. The rule is
+      # OR rather than AND here, which is a deliberate choice for this check: the equal-item
+      # networks are built on half the items of the H0 networks, and the AND rule combined
+      # with a smaller item set prunes edges that the diagnostic needs in order to rank items
+      # at all. The quantities recorded below are a hub identity and a difference in mean
+      # Strength, neither of which enters a hypothesis test, so the looser rule is the
+      # conservative direction for a check whose job is to look for a pattern that is not
+      # there. Section 5.4 of the article states the setting.
+      mgm_iter <- mgm::mgm(iter_matrix, type = rep("g", 2*k), level = rep(1, 2*k),
+                           lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "OR", 
+                           verbose = FALSE, pbar = FALSE)
+      
+      # Calculate Strength & Fix Names
+      strengths <- colSums(abs(mgm_iter$pairwise$wadj))
+      names(strengths) <- colnames(iter_matrix)
+      
+      # 1. Record Hub Winner
+      winners <- names(strengths)[strengths == max(strengths)]
+      hub_win <- as.numeric(any(winners %in% sampled_cm))
+      
+      # 2. Record Delta Mean
+      mean_cm <- mean(strengths[sampled_cm])
+      mean_cb <- mean(strengths[sampled_cb])
+      delta_m <- mean_cb - mean_cm
+      
+      # Return results for this single iteration
+      return(data.frame(CM_Top1 = hub_win, Delta_Mean = delta_m))
+    }
+    
+    # Add the dataset name to the resulting dataframe and store in list
+    dataset_results$Dataset <- name
+    monte_carlo_results[[name]] <- dataset_results
+}
+
+# Cleanup & Save
+stopCluster(cl) # Very important: shut down the workers!
+
+saveRDS(monte_carlo_results, here("Input", "Secondary", "monte_carlo_results.rds"))
+
+#Load to save time
+# monte_carlo_results <- readRDS(here("Input", "Secondary", "monte_carlo_results.rds"))
+```
+
+
+### Plots
+
+#### Prop of times any cm item is the most central node
+
+```{r}
+mc_data_clean <- do.call(rbind, monte_carlo_results) %>%
+  mutate(
+    CountryRaw = str_remove_all(Dataset, "Study1_SUSPECTS_|Study2_ACTS_|Study3_CMQ_|Study3_GCB_"),
+    CountryName = case_when(
+      CountryRaw == "DEU" ~ "Germany", CountryRaw == "ESP" ~ "Spain",
+      CountryRaw == "FRA" ~ "France", CountryRaw == "GBR" ~ "United Kingdom",
+      CountryRaw == "ITA" ~ "Italy", CountryRaw == "POL" ~ "Poland",
+      CountryRaw == "SWE" ~ "Sweden", CountryRaw %in% c("USA", "USA_ACTS") ~ "United States",
+      TRUE ~ CountryRaw 
+    ),
+    Scale = case_when(
+      grepl("Study1", Dataset) ~ "GCB5", grepl("Study2", Dataset) ~ "ACTS",
+      grepl("Study3_CMQ", Dataset) ~ "CMQ", grepl("Study3_GCB", Dataset) ~ "GCB"
+    ),
+    FacetTitle = paste0(CountryName, " (", Scale, ")")
+  )
+```
+
+```{r}
+#Define a global theme
+theme_masterpiece <- function() {
+  theme_minimal(base_size = 11, base_family = "serif") +
+    theme(
+      # Text elements
+      text = element_text(family = "serif", color = "#1A1A1A"),
+      plot.title = element_text(face = "bold", size = 15, family = "serif", hjust = 0.5, margin = margin(b = 15)),
+      plot.tag = element_text(face = "bold", size = 22, family = "serif"),
+      
+      # Facet Strip
+      strip.background = element_rect(fill = "#EFEFEF", color = "#333333", size = 0.6),
+      strip.text = element_text(face = "bold", size = 10, family = "serif", color = "#1A1A1A"),
+      
+      # Grid Logic
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(color = "#D1D1D1", size = 0.4, linetype = "dotted"),
+      
+      # Background
+      panel.background = element_rect(fill = "white", color = "#333333", size = 0.7),
+      plot.background = element_rect(fill = "#F9F9F7", color = NA), 
+      
+      # Axis Styling
+      axis.title.y = element_text(face = "bold", size = 12, margin = margin(r = 12)),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 8.5, color = "black", face = "bold"),
+      axis.text.y = element_text(size = 9.5, color = "black"),
+      axis.line = element_line(color = "#333333", size = 0.5),
+      
+      # Legend 
+      legend.position = "none",
+      plot.margin = margin(5, 5, 5, 5)
+    )
+}
+```
+
+```{r}
+summary_data <- mc_data_clean %>%
+  group_by(FacetTitle, Scale) %>%
+  summarise(
+    Successes = sum(CM_Top1),
+    Total = n(),
+    Probability = mean(CM_Top1),
+    Lower_CI = binom.test(sum(CM_Top1), n())$conf.int[1],
+    Upper_CI = binom.test(sum(CM_Top1), n())$conf.int[2],
+    .groups = "drop"
+  )
+
+ggplot(summary_data, aes(x = reorder(FacetTitle, Probability), y = Probability)) +
+  geom_hline(yintercept = 0.5, color = "#D3D3D3", linetype = "dashed", size = 1) +
+  geom_errorbar(aes(ymin = Lower_CI, ymax = Upper_CI), width = 0.3, color = "#455A64", size = 0.8) +
+  geom_point(aes(color = Probability > 0.5), size = 4) +
+  scale_color_manual(values = c("TRUE" = "#006B3C", "FALSE" = "#E41A1C")) +
+  scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
+  coord_flip() + 
+  labs(
+    title = "Monte Carlo Robustness: Hub Status Probability",
+    subtitle = "Probability that a Conspiracy Mentality item is the most central node (Equal-Item Comparison)",
+    x = NULL, y = "Probability of CM being the Network Hub"
+  ) +
+  theme_masterpiece() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 16),
+    axis.text.y = element_text(size = 10, face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+ggsave(here("Output", "Robustness", "MC", "MC_Final_Hub_Probability.png"), width = 9, height = 7, dpi = 600, type = "cairo")
+```
+
+#### Distribution on the deltas of CM and CB items
+
+```{r}
+# 1. Prepare the data: Order facets by the median Delta_Mean for a professional flow
+mc_data_ordered <- mc_data_clean %>%
+  group_by(FacetTitle) %>%
+  mutate(Median_Delta = median(Delta_Mean)) %>%
+  ungroup() %>%
+  mutate(FacetTitle = reorder(FacetTitle, Median_Delta))
+
+# 2. Build the Masterpiece Violin Plot
+ggplot(mc_data_ordered, aes(x = "Simulations", y = Delta_Mean)) +
+  # The Zero Line (The Null Hypothesis reference)
+  geom_hline(yintercept = 0, color = "#E41A1C", linetype = "dashed", size = 1, alpha = 0.8) +
+  
+  # The Violin: Using the Deep Purple from your CB palette
+  geom_violin(fill = "#702963", color = "#1A1A1A", alpha = 0.7, size = 0.6) +
+  
+  # The Boxplot inside for precise median/quartile tracking
+  geom_boxplot(width = 0.15, fill = "white", color = "#1A1A1A", outlier.shape = NA, size = 0.6) +
+  
+  # Facet by Country/Study
+  facet_wrap(~ FacetTitle, ncol = 4) + 
+  
+  labs(
+    title = "Monte Carlo Robustness: Distribution of Centrality Differences",
+    subtitle = "Delta Mean (CB Strength - CM Strength). Values > 0 indicate CB items are more central on average.",
+    x = NULL, 
+    y = expression(paste(Delta, " Mean (Strength Centrality)"))
+  ) +
+  
+  # Apply your custom masterpiece theme
+  theme_masterpiece() +
+  theme(
+    # Clean up the X-axis since "Simulations" is redundant across facets
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    
+    # Ensure the Y-axis is crisp
+    axis.title.y = element_text(face = "bold", size = 12),
+    
+    # Formatting the facets to match your masterpiece style
+    strip.background = element_rect(fill = "#EFEFEF", color = "#333333"),
+    strip.text = element_text(face = "bold", size = 9)
+  )
+
+# 3. Save with high resolution
+ggsave(here("Output", "Robustness", "MC", "MC_Final_Delta_Mean_Violin.png"), 
+       width = 11, height = 8, dpi = 600, type = "cairo")
+```
+
+
+## Case dropping bootstrap of every network
+
+```{r}
+# Case dropping bootstrap with bootnet
+
+# all matrices into a master list
+all_matrices <- list()
+for (name in names(Full_items_npn)) {
+  all_matrices[[paste0("H0_", name)]] <- Full_items_npn[[name]]
+  all_matrices[[paste0("H1_", name)]] <- H1_matrices_npn[[name]]
+  all_matrices[[paste0("H2_", name)]] <- H2_matrices_npn[[name]]
+}
+
+# # case-dropping bootstraps
+# set.seed(123)
+# case_boots <- list()
+# 
+# for (name in names(all_matrices)) {
+#   mat <- all_matrices[[name]]
+#   k <- ncol(mat)
+#   
+#   fit <- estimateNetwork(mat, default = "mgm", 
+#                          type = rep("g", k), level = rep(1, k),
+#                          verbose = FALSE)
+#   
+#   case_boots[[name]] <- bootnet(fit, nBoots = 1000, type = "case", 
+#                                 nCores = 16, statistics = "strength")
+# }
+#
+## Save 
+#saveRDS(case_boots, here("Input", "Secondary", "boot_case_master.rds"))
+
+# or load
+case_boots = readRDS(here("Input", "Secondary", "boot_case_master.rds"))
+```
+
+
+```{r}
+# Extract data
+
+# Initialize empty lists for the tables
+centrality_tables <- list()
+cs_tables <- list()
+
+for (name in names(case_boots)) {
+  boot_obj <- case_boots[[name]]
+  
+  # Extract centrality 
+  cent_df <- centralityTable(boot_obj$sample, standardized = TRUE) %>% 
+    filter(measure == "Strength") %>%
+    mutate(Network = name) %>%
+    select(Network, Node = node, Strength = value)
+  
+  centrality_tables[[name]] <- cent_df
+  
+  # Extract CS-Coefficient 
+  cs_val <- corStability(boot_obj, cor = 0.7, statistics = "strength")
+  
+  cs_tables[[name]] <- data.frame(
+    Network = name,
+    CS_Coefficient = cs_val
+  )
+}
+
+# Bind into master dataframes
+master_centrality <- do.call(rbind, centrality_tables)
+master_cs <- do.call(rbind, cs_tables)
+```
+
+
+### Tables 
+
+```{r}
+# Export 
+write.csv(master_centrality, here("Output", "Robustness", "Stability", "Appendix_Centrality_Tables.csv"), row.names = FALSE)
+write.csv(master_cs, here("Output", "Robustness", "Stability", "Appendix_CS_Coefficients.csv"), row.names = FALSE)
+```
+
+
+### Plots
+
+#### Stability plots
+
+```{r}
+plot_library <- list()
+
+for (name in names(case_boots)) {
+  
+  # Parse the name (e.g., "H1_Study3_CMQ_FRA")
+  parts <- str_split(name, "_", n = 2)[[1]]
+  hyp <- parts[1] # e.g., "H1"
+  rest <- parts[2] # e.g., "Study3_CMQ_FRA"
+  
+  # Extract country and study 
+  rest_parts <- str_split(rest, "_")[[1]]
+  country_raw <- tail(rest_parts, 1)
+  study <- str_remove(rest, paste0("_", country_raw, "$"))
+  
+  # Clean country names for the title
+  country_clean <- case_when(
+    country_raw == "DEU" ~ "Germany",
+    country_raw == "ESP" ~ "Spain",
+    country_raw == "FRA" ~ "France",
+    country_raw == "GBR" ~ "United Kingdom",
+    country_raw == "ITA" ~ "Italy",
+    country_raw == "POL" ~ "Poland",
+    country_raw == "SWE" ~ "Sweden",
+    country_raw %in% c("USA", "USA_ACTS") ~ "United States",
+    TRUE ~ country_raw
+  )
+  
+  # Build the Plot
+  p <- plot(case_boots[[name]], statistics = "strength") +
+    labs(
+      title = country_clean, 
+      x = "Fraction of Cases Dropped",
+      y = "Correlation"
+    ) +
+    theme_masterpiece() +
+    theme(
+      legend.position = "none", 
+      plot.title = element_text(hjust = 0.5) 
+    )
+  
+  # Initialize list levels 
+  if (is.null(plot_library[[study]])) plot_library[[study]] <- list()
+  if (is.null(plot_library[[study]][[hyp]])) plot_library[[study]][[hyp]] <- list()
+  
+  # Store the plot
+  plot_library[[study]][[hyp]][[country_clean]] <- p
+}
+
+# Now we assemble the final figures
+
+for (study in names(plot_library)) {
+  
+  # Study 1 and 3 have same logic
+  if (str_starts(study, "Study1") | str_starts(study, "Study3")) {
+    
+    for (hyp in names(plot_library[[study]])) {
+
+      # Only the H1 and H2 panels are used (Figures S8, S9, S22, S23). The H0 panels were
+      # written and cited nowhere, so they are no longer produced.
+      if (hyp == "H0") next
+
+      # Extract all country plots 
+      p_list <- plot_library[[study]][[hyp]]
+      
+      # Assemble 
+      combined_panel <- wrap_plots(p_list, ncol = 2) +
+        plot_annotation(
+          theme = theme(plot.title = element_text(family = "serif", face = "bold", size = 18, hjust = 0.5))
+        )
+      
+      # Export 
+      ggsave(here("Output", "Robustness", "Stability", paste0("Panel_", study, "_", hyp, ".png")),
+             plot = combined_panel, width = 8, height = 12, dpi = 600, type = "cairo")
+    }
+    
+  # Study 2
+  } else if (str_starts(study, "Study2")) {
+    
+    # Overwrite the default country title with the specific hypothesis
+    p_h0 <- plot_library[[study]][["H0"]][[1]] + labs(title = "H0", subtitle = NULL)
+    p_h1 <- plot_library[[study]][["H1"]][[1]] + labs(title = "H1", subtitle = NULL)
+    p_h2 <- plot_library[[study]][["H2"]][[1]] + labs(title = "H2", subtitle = NULL)
+    
+    # Assemble 
+    combined_s2 <- (p_h0 / p_h1 / p_h2) +
+      plot_annotation(
+        theme = theme(plot.title = element_text(family = "serif", face = "bold", size = 18, hjust = 0.5))
+      )
+    
+    # Export
+    ggsave(here("Output", "Robustness", "Stability", paste0("Panel_", study, "_All_Hypotheses.png")),
+           plot = combined_s2, width = 8, height = 12, dpi = 600, type = "cairo")
+  }
+}
+```
+
+#### Centrality plots
+
+```{r}
+# Rebuild the all_matrices list just to extract the true column names
+all_matrices <- list()
+for (name in names(Full_items_npn)) {
+  all_matrices[[paste0("H0_", name)]] <- Full_items_npn[[name]]
+  all_matrices[[paste0("H1_", name)]] <- H1_matrices_npn[[name]]
+  all_matrices[[paste0("H2_", name)]] <- H2_matrices_npn[[name]]
+}
+
+# Take node names
+mapping_list <- list()
+for (name in names(all_matrices)) {
+  mat <- all_matrices[[name]]
+  mapping_list[[name]] <- data.frame(
+    Network = name,
+    Node_Num = as.character(1:ncol(mat)),
+    Actual_Node = colnames(mat)
+  )
+}
+node_dict <- do.call(rbind, mapping_list)
+
+# Data cleaning
+cent_plot_data <- master_centrality %>%
+  mutate(Node_Num = as.character(parse_number(as.character(Node)))) %>%
+  left_join(node_dict, by = c("Network", "Node_Num")) %>%
+  mutate(Node = ifelse(!is.na(Actual_Node), Actual_Node, as.character(Node))) %>%
+  
+  # extraction of study and country
+  mutate(
+    Hypothesis = substr(Network, 1, 2),
+    Rest = str_remove(Network, "^H[0-2]_"),
+    Study = str_extract(Rest, "Study[1-3](_[A-Z]+)?"),
+    CountryRaw = str_remove(Rest, paste0(Study, "_")),
+    CountryName = case_when(
+      CountryRaw == "DEU" ~ "Germany",
+      CountryRaw == "ESP" ~ "Spain",
+      CountryRaw == "FRA" ~ "France",
+      CountryRaw == "GBR" ~ "United Kingdom",
+      CountryRaw == "ITA" ~ "Italy",
+      CountryRaw == "POL" ~ "Poland",
+      CountryRaw == "SWE" ~ "Sweden",
+      CountryRaw %in% c("USA", "USA_ACTS") ~ "United States",
+      TRUE ~ CountryRaw
+    )
+  )
+
+# Ordered (top to bottom)
+node_levels <- unique(cent_plot_data$Node)
+indices <- c("CM", "CB")
+cm_items <- sort(node_levels[str_starts(node_levels, "cm_")])
+cb_items <- sort(node_levels[str_starts(node_levels, "cb_")])
+
+# Factor and reverse so sumscores are at the top 
+cent_plot_data$Node <- factor(cent_plot_data$Node, levels = c(indices, cm_items, cb_items))
+cent_plot_data$Node <- fct_rev(cent_plot_data$Node) 
+
+# Plot
+hyp_colors <- c("H0" = "#A9A9A9", # Baseline = Neutral Grey
+                "H1" = "#008080", # CM Context = Teal
+                "H2" = "#702963") # CB Context = Purple
+
+for (study_id in unique(cent_plot_data$Study)) {
+  
+  df_study <- cent_plot_data %>% 
+    filter(Study == study_id) %>%
+    arrange(desc(Node)) 
+  
+  n_countries <- length(unique(df_study$CountryName))
+  ncol_val <- ifelse(n_countries == 1, 1, 2)
+  plot_height <- max(7, ceiling(n_countries / ncol_val) * 4)
+  
+ p_profile <- ggplot(df_study, aes(x = Strength, y = Node)) +
+    
+    # Zero-line reference 
+    geom_vline(xintercept = 0, color = "#E41A1C", linetype = "dashed", size = 0.8, alpha = 0.6) +
+    
+    # Group by hypo and draw the line
+    geom_path(aes(group = Hypothesis, color = Hypothesis), size = 1.2, alpha = 0.5) +
+    
+    # Draw points 
+    geom_point(aes(color = Hypothesis), size = 3.5, alpha = 0.9) +
+    
+    facet_wrap(~ CountryName, ncol = ncol_val, scales = "fixed") + 
+    
+    # UPDATE 2: Clean, short labels
+    scale_color_manual(values = hyp_colors, labels = c("H0", "H1", "H2")) +
+    
+    labs(
+      x = "Standardized Strength Centrality (Z-Score)",
+      y = NULL, 
+      color = "Network Context:"
+    ) +
+    
+    theme_masterpiece() +
+    theme(
+      # UPDATE 1: Legend relocated to the bottom
+      legend.position = "bottom",
+      legend.title = element_text(face = "bold", size = 11),
+      legend.text = element_text(size = 10),
+      axis.text.y = element_text(face = "bold", size = 9, color = "#1A1A1A"),
+      axis.text.x = element_text(size = 9, color = "#1A1A1A"),
+      axis.title.x = element_text(face = "bold", size = 11, margin = margin(t = 10)),
+      panel.grid.major.y = element_blank(), 
+      panel.grid.major.x = element_line(color = "#E5E5E5", size = 0.5, linetype = "dotted")
+    )
+  
+  ggsave(here("Output", "Robustness", paste0("Centrality_Profiles_", study_id, ".png")),
+         plot = p_profile, width = 10, height = plot_height, dpi = 600, type = "cairo")
+}
+
+```
+
+
