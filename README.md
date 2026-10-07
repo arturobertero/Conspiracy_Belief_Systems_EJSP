@@ -314,7 +314,13 @@ psych      2.5.3     qgraph   1.9.8     huge     1.3.5     knitr      1.50
 
 ## Citation
 
-Please cite the paper. A `CITATION.cff` will be added once the DOI is assigned.
+Please cite the paper:
+
+Bertero, A., Williams, M., Vegetti, F., & Mancosu, M. (2026). Searching for the core of
+conspiracy belief systems: The relationship between specific beliefs and generic mentality.
+*European Journal of Social Psychology*. https://doi.org/10.1002/ejsp.70122
+
+`CITATION.cff` carries the same reference, so GitHub's "Cite this repository" button gives it.
 
 ## License
 

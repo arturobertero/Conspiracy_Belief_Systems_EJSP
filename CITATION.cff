@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use these materials, please cite the article below."
+title: "Replication materials for: Searching for the Core of Conspiracy Belief Systems"
+type: software
+license: MIT
+repository-code: "https://github.com/arturobertero/Conspiracy_Belief_Systems_EJSP"
+authors:
+  - family-names: Bertero
+    given-names: Arturo
+    orcid: "https://orcid.org/0000-0001-6014-1794"
+  - family-names: Williams
+    given-names: Matt
+    orcid: "https://orcid.org/0000-0002-0571-215X"
+  - family-names: Vegetti
+    given-names: Federico
+    orcid: "https://orcid.org/0000-0002-1541-114X"
+  - family-names: Mancosu
+    given-names: Moreno
+    orcid: "https://orcid.org/0000-0002-3017-4066"
+preferred-citation:
+  type: article
+  title: "Searching for the Core of Conspiracy Belief Systems: The Relationship Between Specific Beliefs and Generic Mentality"
+  journal: "European Journal of Social Psychology"
+  year: 2026
+  doi: "10.1002/ejsp.70122"
+  authors:
+    - family-names: Bertero
+      given-names: Arturo
+      orcid: "https://orcid.org/0000-0001-6014-1794"
+    - family-names: Williams
+      given-names: Matt
+      orcid: "https://orcid.org/0000-0002-0571-215X"
+    - family-names: Vegetti
+      given-names: Federico
+      orcid: "https://orcid.org/0000-0002-1541-114X"
+    - family-names: Mancosu
+      given-names: Moreno
+      orcid: "https://orcid.org/0000-0002-3017-4066"
