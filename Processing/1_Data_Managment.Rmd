@@ -18,22 +18,22 @@ options(scipen = 99)
 ```
 
 <!--
-IMPORTANT - two of the three raw files are NOT in this repository.
+IMPORTANT: two of the three raw files are NOT in this repository.
 
 Study 1 (SUSPECTS) ships with the repository. The Study 2 and Study 3 raw files belong to other
 research teams and are distributed by them, so they are not redistributed here. Both are free to
 obtain from the Harvard Dataverse; do this once and this script runs unchanged.
 
-Study 2 - Enders, A., Farhart, C., Miller, J., Uscinski, J., Saunders, K., & Drochon, H. (2023).
+Study 2: Enders, A., Farhart, C., Miller, J., Uscinski, J., Saunders, K., & Drochon, H. (2023).
 "Are Republicans and conservatives more likely to believe conspiracy theories?"
 Political Behavior, 45(4), 2001-2024. https://doi.org/10.1007/s11109-022-09812-3
-Replication archive: https://doi.org/10.7910/DVN/MMMYGJ  (public, CC0 1.0 - no request needed)
+Replication archive: https://doi.org/10.7910/DVN/MMMYGJ  (public, CC0 1.0, no request needed)
   - open the Files tab, find "Qualtrics 2021",
-  - Access File > Original File Format (Stata Binary). Not the .tab and not the CSV export:
-    read_dta() below expects the original Stata file, and the ingested versions drop the labels,
+  - Access File > Original File Format (Stata Binary): read_dta() below expects the original
+    Stata file, and the .tab and CSV versions drop the value labels,
   - save it as Input/Enders/Qualtrics 2021.dta.
 
-Study 3 - Bordeleau, J.-N., Stockemer, D., Amengay, A., & Shamaileh, A. (2025).
+Study 3: Bordeleau, J.-N., Stockemer, D., Amengay, A., & Shamaileh, A. (2025).
 "The Comparative Conspiracy Research Survey (CCRS): A new cross-national dataset for the study
 of conspiracy beliefs." European Political Science, 24(1), 1-11.
 https://doi.org/10.1057/s41304-023-00463-4
@@ -45,7 +45,7 @@ so you may need to click "Request Access" and wait for approval)
     (ID_Q2 -> id_q2, ID_Q33_1 -> id_q33_1, ID_Q36_1 -> id_q36_1, and so on).
 
 If you only want to reproduce the analyses, you do not need either file: this script's output,
-Input/Secondary/master_datasets.rds, is included, and scripts 2 to 5 and 7 start from it.
+Input/Secondary/master_datasets.rds, is included, and scripts 2 to 7 start from it.
 -->
 
 ```{r}
@@ -57,7 +57,7 @@ SUSPECTS_GCB5 = read_rds(here("Input", "SUSPECTS.rds"))
 CCRS = read_csv(here("Input", "CCRS", "CCRS.csv")) %>% clean_names()
 
 # Enders et al
-# We use the Qualtrics 2021 dataset as it has the richest set of CBs (17 items) + the 4 ACTS items
+# The Qualtrics 2021 dataset has the most CB items (17), plus the 4 ACTS items
 # See the note above: obtain it from https://doi.org/10.7910/DVN/MMMYGJ
 Study2_ACTS <- read_dta(here("Input", "Enders", "Qualtrics 2021.dta")) %>% 
   clean_names()

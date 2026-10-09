@@ -30,10 +30,9 @@ pacman::p_load(tidyverse, here, psych, lavaan, EGAnet, qgraph, mgm, bootnet, hug
 # 3. Knit the scripts in Processing/ in numerical order (1, 2, 3, 4, 5, 6, 7, 8).
 ```
 
-Scripts 2 to 7 all start from `Input/Secondary/master_datasets.rds`, which is included,
-so they run out of the box and can be run individually. Script 1 is the only one that touches
-the raw Study 2 and Study 3 files, which are not redistributed here. See
-**[Data sources](#data-sources)** for how to obtain them.
+Scripts 2 to 7 all start from `Input/Secondary/master_datasets.rds`, which is included, so
+each of them runs on its own. Only script 1 reads the raw Study 2 and Study 3 files, which are
+not redistributed here; [Data sources](#data-sources) explains how to obtain them.
 
 ---
 
@@ -136,36 +135,34 @@ counts and alphas, and `CFA_Fit_Stats_Master.csv` for the fit statistics.
 
 ## Checking the numbers in the text
 
-`Processing/7_Reporting_Checks.Rmd` re-derives every quantity stated in the Results rather
-than reading it off a figure. It writes five tables to `Output/Reporting_Checks/`, plus
-Table S9 of the Supplement to `Output/Difference_Tests/`:
+`Processing/7_Reporting_Checks.Rmd` recomputes every quantity stated in the Results. It writes
+five tables to `Output/Reporting_Checks/`, plus Table S9 of the Supplement to
+`Output/Difference_Tests/`:
 
 - `Check_Sample_Sizes.csv`: the analytic N per country and per study, after listwise deletion.
 - `Check_EGA_Communities.csv`: the number of communities and the full item partition returned
   by EGA for each of the 17 country networks.
 - `Check_Alpha_Fit_CIs.csv`: Cronbach's alpha with Feldt 95% intervals, and the two-factor CFA
   fit with the 90% RMSEA interval.
-- `Check_Summary_Node_Ranks.csv`: for each of the 34 H1 and H2 country networks: the Strength
+- `Check_Summary_Node_Ranks.csv`: for each of the 34 H1 and H2 country networks, the Strength
   rank of the summary node, whether its 95% bootstrap interval lies entirely above or below the
   intervals of all other nodes, and the same rank re-estimated with the alternative tuning
   criterion.
-- `Check_Difference_Tests.csv`: the decision rule the paper applies to H1 and H2: bootstrapped
-  difference tests on Strength between the summary node and every other node, in each of the 34
-  networks, with the resulting verdict (supported / falsified / inconclusive).
+- `Check_Difference_Tests.csv`: one row for each of the 34 networks, with the bootstrapped
+  difference tests on Strength between the summary node and every other node, and the verdict
+  they give for H1 or H2.
 
-On the decision rule: comparing point estimates is not a test, and comparing two marginal
-bootstrap intervals is not one either, since two nodes can differ reliably while their intervals
-overlap. Following Epskamp, Borsboom and Fried (2018), the difference is bootstrapped directly:
-within each of the 1,000 bootstrap samples we take the difference in Strength between the summary
-node and each other node, and read the 2.5th and 97.5th percentiles of that difference. A
-hypothesis is supported only where the summary node is reliably more central than every other
-node, and falsified where it is reliably less central than every other node.
+The difference tests follow Epskamp, Borsboom and Fried (2018). In each of the 1,000 bootstrap
+samples, the script takes the difference in Strength between the summary node and another node;
+the two nodes differ when the 2.5th to 97.5th percentile range of that difference excludes zero.
+`N_sig_higher` and `N_sig_lower` count the nodes the summary node is more or less central than,
+out of `N_comparisons`. `Verdict` reads `supported` when the summary node is more central than
+all of them, `falsified` when it is less central than all of them, and `inconclusive` otherwise.
 
-The last file is a quick check on the tuning criterion. Every network in this repository,
-drawn or analysed, is estimated with `mgm()` under EBIC (`lambdaGam = 0.25`) and the AND rule,
-which are the settings `bootnet(default = "mgm")` applies internally. `Same_rank` compares the
-summary-node rank against a re-estimation under cross-validation and the OR rule, and it is
-`TRUE` in all 34 networks. Script 6 carries the full version of the same check, with
+Every network in this repository, drawn or analysed, is estimated with `mgm()` under EBIC
+(`lambdaGam = 0.25`) and the AND rule. The `Same_rank` column of `Check_Summary_Node_Ranks.csv`
+compares the summary node's rank under these settings with its rank under cross-validation and
+the OR rule, and it is `TRUE` in all 34 networks. Script 6 runs the same comparison in full, with
 bootstraps and difference tests under two alternative specifications.
 
 ---
@@ -184,20 +181,19 @@ Figure 1 and in Figures S3 to S6, S11, S12 and S17 to S20 are the networks on wh
 Strength estimates, the bootstrap intervals and the difference tests are computed.
 
 The nonparanormal transformation (`huge::huge.npn`) is applied before every H1 and H2
-estimation, which is what Section 4.4 of the article describes. It is **not** applied to the
-17 H0 networks in script 2: those figures are illustrative, and the H0 conclusion rests on
-EGA and CFA rather than on them. Figure 1's H0 panel is built in script 4 and does use the
-transformation, so it differs slightly from the same country's panel in Figures S1 and S2.
+estimation, as Section 4.4 of the article describes. It is not applied to the 17 H0 networks
+in script 2: those figures are illustrative, and the H0 conclusion rests on EGA and CFA.
+Figure 1's H0 panel is built in script 4 and does use the transformation, so it differs
+slightly from the same country's panel in Figures S1 and S2.
 
-Edges are drawn
-from `$pairwise$wadj` with `$pairwise$edgecolor_cb`, which is the colourblind-safe palette and
-carries the sign of each edge.
+Edges are drawn from `$pairwise$wadj` with `$pairwise$edgecolor_cb`, the colourblind-safe
+palette, which carries the sign of each edge.
 
-The `mgm` package selects the tuning parameter by cross-validation instead. Script 6 repeats
-the whole H1 and H2 analysis under cross-validation with both the AND and the OR rule, and
-writes Table S10.
+By default, the `mgm` package selects the tuning parameter by cross-validation. Script 6
+repeats the whole H1 and H2 analysis under cross-validation with both the AND and the OR rule,
+and writes Table S10.
 
-One check departs from this on purpose. The equal-item Monte Carlo in script 5 keeps the EBIC
+One check uses a different rule. The equal-item Monte Carlo in script 5 keeps the EBIC
 tuning and switches to the OR rule, because those networks are built on half the items of the
 H0 networks, and the looser rule retains weak edges that the AND rule discards. That matters
 when items are ranked by summed edge weight. The two quantities it records, a hub identity and
@@ -209,8 +205,8 @@ a difference in mean Strength, do not enter any hypothesis test.
 
 Script 8 writes `Output/Submission/`, in which every file carries the name the article or the
 Supplement gives it: `Figure 1.png`, `Figure 1.pdf`, `Figure S1.png` through `Figure S25.png`,
-and `Table S1.doc` through `Table S10.doc`. Nothing is recomputed there; the folder is a
-renamed view of the outputs listed above, and the script fails loudly if any of them is
+and `Table S1.doc` through `Table S10.doc`. The script recomputes nothing: it copies the
+outputs listed above under their article names and stops with an error if any of them is
 missing. `Output/Submission/_contents.txt` lists what was written.
 
 ---
@@ -229,22 +225,21 @@ default:
 | equal-item Monte Carlo (1,000 iterations x 17 datasets) | script 5 | **runs by default** and takes hours |
 
 Uncomment the relevant block, or set `RUN_BOOTSTRAPS <- TRUE` in script 6, to re-run any of
-them. Lower `nCores = 16` and `makeCluster(12)` to match your machine. Seeding is only partial, and
-it is worth being precise about where. `set.seed(123)` fixes the deterministic steps. It does
-not reach the parallel workers: neither `bootnet`'s cluster nor the `foreach` loop behind the
-equal-item Monte Carlo calls `clusterSetRNGStream`, so bootstrap values and Monte Carlo
-iterations differ in the last decimals from run to run and from machine to machine. No
-reported ranking or verdict depends on that, but the Monte Carlo block also overwrites its own
-`.rds` on every run, so delete or comment it if you want the shipped Figures S24 and S25 to
-stay exactly as published. The network figures are reproducible: EBIC selection is deterministic, and
-the one placement that is not, the spring layout of Figure 1, is frozen in
+them, and lower `nCores = 16` and `makeCluster(12)` to match your machine. `set.seed(123)`
+fixes the deterministic steps but does not reach the parallel workers: neither `bootnet`'s
+cluster nor the `foreach` loop behind the equal-item Monte Carlo calls `clusterSetRNGStream`,
+so bootstrap values and Monte Carlo iterations differ in the last decimals between runs and
+between machines. No reported ranking or verdict depends on those decimals. The Monte Carlo
+block overwrites its own `.rds` on every run, so delete or comment it out if you want Figures
+S24 and S25 to stay as published. The network figures reproduce exactly: EBIC selection is
+deterministic, and the spring layout of Figure 1, the one random placement, is frozen in
 `Input/Secondary/figure1_layouts.rds`.
 
 ---
 
 ## Data sources
 
-Study 1 is included here; **Studies 2 and 3 are not**, because they belong to other research
+Study 1 is included here. Studies 2 and 3 are not, because they belong to other research
 teams who distribute them themselves. Both are free to obtain from the Harvard Dataverse, and
 the steps below produce exactly the two files `Processing/1_Data_Managment.Rmd` expects.
 

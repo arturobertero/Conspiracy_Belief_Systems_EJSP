@@ -66,19 +66,18 @@ for (study_name in names(master_datasets)) {
 ## Network estimation and plotting
 
 ```{r}
-# ONE ESTIMATOR FOR THE WHOLE PAPER.
-# Every network in this paper, drawn or analysed, is estimated with mgm() under EBIC
-# (lambdaGam = 0.25) and the AND rule. These are exactly the settings bootnet(default = "mgm")
-# applies internally, so the pictures below show the same networks the Strength estimates,
-# the bootstrap intervals and the difference tests are computed on. Script 6 re-runs the
-# H1 and H2 analyses under cross-validation, with the AND and then the OR rule. Ranks are
-# identical in all 34 networks and verdicts in 32 of 34; the German and British H1 networks
-# move from falsified to inconclusive, which Section 5.5 reports.
-# The seed is kept for the layout algorithm rather than for the fit: EBIC selection is
-# deterministic, but qgraph's spring placement is not.
+# One estimator throughout the paper: every network, drawn or analysed, is fitted with mgm()
+# under EBIC (lambdaGam = 0.25) and the AND rule, the settings bootnet(default = "mgm") uses
+# internally. The networks drawn below are the ones the Strength estimates, the bootstrap
+# intervals and the difference tests are computed on. Script 6 re-runs H1 and H2 under
+# cross-validation, with the AND and then the OR rule: ranks are identical in all 34 networks
+# and verdicts in 32 of 34 (the German and British H1 networks move from falsified to
+# inconclusive, which Section 5.5 reports).
+# The seed is set for the layout algorithm: EBIC selection is deterministic, but qgraph's
+# spring placement is not.
 set.seed(123)
 
-# Maintain color consistency: Purple for CM items, Green for CB Index
+# Colors: purple for CM items, green for the CB index
 Totalgroup_cols_H2 <- c("#966FD6", "#006B3C") 
 
 for (name in names(H2_matrices)) {
@@ -137,7 +136,7 @@ for (name in names(H2_matrices)) {
 ```
 
 ```{r}
-# Directories (Updated to H2)
+# Directories
 input_dir <- here("Output", "H2", "Country_networks")
 output_dir <- here("Output", "H2", "Composite_Figures")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
@@ -155,7 +154,7 @@ if (length(study1_files) == 8) {
   comp_1a <- image_montage(image_join(imgs_1a), tile = "2x2", geometry = "+50+50")
   comp_1b <- image_montage(image_join(imgs_1b), tile = "2x2", geometry = "+50+50")
   
-  # Save (Updated names to H2)
+  # Save
   image_write(comp_1a, path = here(output_dir, "H2_Study1_Composite_A.png"), format = "png")
   image_write(comp_1b, path = here(output_dir, "H2_Study1_Composite_B.png"), format = "png")
 }
@@ -176,7 +175,7 @@ if (length(study3_cmq_files) == 8) {
   comp_3a_cmq <- image_montage(image_join(imgs_3a_cmq), tile = "2x2", geometry = "+50+50")
   comp_3b_cmq <- image_montage(image_join(imgs_3b_cmq), tile = "2x2", geometry = "+50+50")
   
-  # Save (Updated names to H2)
+  # Save
   image_write(comp_3a_cmq, path = here(output_dir, "H2_Study3_CMQ_Composite_A.png"), format = "png")
   image_write(comp_3b_cmq, path = here(output_dir, "H2_Study3_CMQ_Composite_B.png"), format = "png")
 }
@@ -334,7 +333,7 @@ theme_masterpiece <- function() {
     )
 }
 
-# High-Contrast "Scientific" Colors
+# High-contrast colors
 node_colors <- c("Index" = "#702963", "Item" = "#008080")
 ```
 
@@ -345,11 +344,10 @@ node_colors <- c("Index" = "#702963", "Item" = "#008080")
 #   - a PNG at 600 dpi, named after the figure caption, for reading in this repository;
 #   - a vector PDF named Figure_1.pdf ... Figure_4.pdf, for the publisher.
 #
-# The canvas is 180 x 220 mm. Wiley asks for artwork created between 80 and 180 mm wide,
-# so 180 mm is the full-width option and it means production does not have to rescale
-# anything: the point sizes in theme_masterpiece() are what gets printed. Their naming
-# rule for production files is the word "figure" plus the number and nothing else, which
-# is why the PDFs are named that way and only the PNGs carry the descriptive titles.
+# The canvas is 180 x 220 mm. Wiley asks for artwork between 80 and 180 mm wide; at the full
+# 180 mm nothing is rescaled in production, so the point sizes in theme_masterpiece() are the
+# printed sizes. Wiley names production files "figure" plus the number and nothing else, so
+# the PDFs are named that way and only the PNGs carry the descriptive titles.
 
 fig_dir <- here("Output", "Figures")
 dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
@@ -427,8 +425,7 @@ combined_s1 <- (p1_s1 / p2_s1) +
     plot.tag = element_text(face = "bold", size = 20),
     axis.title.x = element_blank(),
     # 9 rotated labels inside a 45 mm facet collide at the theme's 8.5 pt on
-    # Wiley's 180 mm canvas, which is narrower than the one these panels were
-    # first drawn on. 6 pt clears them.
+    # Wiley's 180 mm canvas; 6 pt clears them.
     axis.text.x = element_text(size = 6)
   )
 
@@ -478,8 +475,7 @@ combined_s2 <- (p1_s2 / p2_s2) +
     plot.tag = element_text(face = "bold", size = 20),
     axis.title.x = element_blank(),
     # 9 rotated labels inside a 45 mm facet collide at the theme's 8.5 pt on
-    # Wiley's 180 mm canvas, which is narrower than the one these panels were
-    # first drawn on. 6 pt clears them.
+    # Wiley's 180 mm canvas; 6 pt clears them.
     axis.text.x = element_text(size = 6)
   )
 
@@ -527,8 +523,7 @@ combined_s3 <- (p1_s3 / p2_s3) +
     plot.tag = element_text(face = "bold", size = 20),
     axis.title.x = element_blank(),
     # 9 rotated labels inside a 45 mm facet collide at the theme's 8.5 pt on
-    # Wiley's 180 mm canvas, which is narrower than the one these panels were
-    # first drawn on. 6 pt clears them.
+    # Wiley's 180 mm canvas; 6 pt clears them.
     axis.text.x = element_text(size = 6)
   )
 
@@ -571,21 +566,17 @@ fit2 <- mgm(m2, type = rep("g", ncol(m2)), level = rep(1, ncol(m2)),
 
 # Freeze the spring layouts.
 #
-# Two problems forced this. First, qgraph rescales a "spring" layout to the plotting region,
-# so the same network laid out on two devices with different aspect ratios comes out arranged
-# differently, and this figure is written to both a PNG and a PDF. Second, the
-# Fruchterman-Reingold placement is not reproducible: it varies from session to session, and
-# set.seed() does not control it, because the randomness is not in R's RNG. I checked this
-# directly - three fresh sessions with set.seed(123) returned layouts summing to 14.233,
-# 14.208 and 14.187.
+# qgraph rescales a "spring" layout to the plotting region, so the same network comes out
+# arranged differently on devices with different aspect ratios, and this figure is written to
+# both a PNG and a PDF. The Fruchterman-Reingold placement is also not reproducible: set.seed()
+# does not control it, because the randomness is not in R's RNG. Three fresh sessions with
+# set.seed(123) returned layouts summing to 14.233, 14.208 and 14.187.
 #
-# So I compute the coordinates once and keep them. The two output files then show the same
-# picture, and anyone re-running this script gets the figure that is in the paper rather than
-# a new arrangement of it. Delete the .rds if you want to draw a fresh layout.
+# The coordinates are therefore computed once and stored: both files show the same picture,
+# and a re-run reproduces the figure in the paper. Delete the .rds to draw a fresh layout.
 #
-# The stored coordinates were regenerated for the EBIC/AND networks. A layout computed on the
-# older CV/OR fits would place nodes for a network that is no longer the one being drawn, so
-# the file was deleted and rebuilt when the estimator changed.
+# The stored coordinates belong to the EBIC/AND networks. If the estimator changes, delete
+# the file so the layout is rebuilt for the new fits.
 
 layout_file <- here("Input", "Secondary", "figure1_layouts.rds")
 
@@ -633,8 +624,8 @@ plot_usa_net_titled <- function(fit, layout_matrix, labs, groups, title_text, vs
 }
 
 # Assembly.
-# This one is base graphics rather than ggplot, so it cannot go through
-# save_article_figure(). I draw it twice instead, once per device, from the same code.
+# This figure is base graphics, so it cannot go through save_article_figure(); it is
+# drawn twice, once per device, from the same code.
 
 draw_figure_1 <- function() {
   # H0 gets the tallest strip because it carries all 13 items at once

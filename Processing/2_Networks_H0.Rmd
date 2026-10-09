@@ -106,19 +106,18 @@ names(EGA_results)
 ```{r}
 # Estimate MGM and Plot
 
-# ONE ESTIMATOR FOR THE WHOLE PAPER.
-# Every network in this paper, drawn or analysed, is estimated with mgm() under EBIC
-# (lambdaGam = 0.25) and the AND rule. These are exactly the settings bootnet(default = "mgm")
-# applies internally, so the pictures below show the same networks the Strength estimates,
-# the bootstrap intervals and the difference tests are computed on. Script 6 re-runs the
-# H1 and H2 analyses under cross-validation, with the AND and then the OR rule. Ranks are
-# identical in all 34 networks and verdicts in 32 of 34; the German and British H1 networks
-# move from falsified to inconclusive, which Section 5.5 reports.
-# The seed is kept for the layout algorithm rather than for the fit: EBIC selection is
-# deterministic, but qgraph's spring placement is not.
+# One estimator throughout the paper: every network, drawn or analysed, is fitted with mgm()
+# under EBIC (lambdaGam = 0.25) and the AND rule, the settings bootnet(default = "mgm") uses
+# internally. The networks drawn below are the ones the Strength estimates, the bootstrap
+# intervals and the difference tests are computed on. Script 6 re-runs H1 and H2 under
+# cross-validation, with the AND and then the OR rule: ranks are identical in all 34 networks
+# and verdicts in 32 of 34 (the German and British H1 networks move from falsified to
+# inconclusive, which Section 5.5 reports).
+# The seed is set for the layout algorithm: EBIC selection is deterministic, but qgraph's
+# spring placement is not.
 set.seed(123)
 
-# Expanded color palette (backups just in case EGA finds 3+ dimensions)
+# Color palette, with spares in case EGA finds 3+ dimensions
 Totalgroup_cols_H0 <- c("#966FD6", "#006B3C", "#FFB347", "#FF6961", "#AEC6CF", "#B39EB5") 
 
 for (name in names(H0_matrices)) {
@@ -344,10 +343,8 @@ write.csv(Alpha_stats_df, here("Output", "H0", "Alpha_Reliability_Master.csv"), 
 ### Interval estimates for alpha and RMSEA
 
 ```{r}
-# Alpha and the fit indices are descriptive rather than effect sizes, but it costs nothing
-# to report intervals for them, so here I compute the Feldt 95% CI for each alpha and the
-# usual 90% CI for RMSEA (the interval lavaan reports and the one APA expects).
-# These are the intervals shown in Tables S2, S5 and S8 of the Supplement.
+# Feldt 95% CI for each alpha and the usual 90% CI for RMSEA (the interval lavaan reports
+# and APA expects). These are the intervals in Tables S2, S5 and S8 of the Supplement.
 
 ci_stats_list <- list()
 
@@ -461,12 +458,11 @@ study3_cb_wording <- tribble(
 
 #Save
 
-# Define and create the output directory for your supplement tables
+# Output directory for the Supplement tables
 output_dir_tables <- here("Output", "Wording")
 
 # File names follow the numbering of the final Supplement: wording tables are S1 (Study 1),
 # S3 (Study 2) and S6 (Study 3, mentality on top and country-specific beliefs below).
-# The old names (S2, S3a, S3b) referred to an earlier draft and did not match the Supplement.
 
 # Study 1
 tab_df(
@@ -475,7 +471,7 @@ tab_df(
   file = here(output_dir_tables, "Table_S1_Wording_Study1.doc")
 )
 
-# 2
+# Study 2
 tab_df(
   study2_wording,
   title = "Study 2: Item Wordings for Conspiracy Beliefs and Mentality",
@@ -546,11 +542,11 @@ chi_diff <- round(model_comp$`Chisq diff`[2], 2)
 df_diff <- model_comp$`Df diff`[2]
 p_diff <- model_comp$`Pr(>Chisq)`[2]
 
-# Formulate the significance string for the article
+# Significance string for the article
 p_string <- ifelse(p_diff < 0.001, "p < .001", paste0("p = ", round(p_diff, 3)))
 manuscript_text <- paste0("A chi-square difference test revealed that the theory-driven 2-factor model fit the data significantly better than the exploratory 1-factor model (Δχ²(", df_diff, ") = ", chi_diff, ", ", p_string, ").")
 
-# Extract key fit stats
+# Fit statistics
 extract_fit <- function(fit, name) {
   meas <- fitMeasures(fit, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr", "bic"))
   data.frame(
@@ -615,9 +611,8 @@ extract_fit <- function(fit, name) {
   )
 }
 
-# Table S7 of the Supplement used to exist only as console output, which meant it could not
-# be checked against the submitted document without re-reading a log. It is now collected and
-# written to a file like every other table.
+# Table S7 of the Supplement is collected here and written to a file like every other
+# table, so it can be checked against the submitted document.
 tableS7_list <- list()
 
 for (country in target_countries) {

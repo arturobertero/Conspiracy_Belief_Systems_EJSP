@@ -13,9 +13,8 @@ bootstraps and difference tests included, under two alternative specifications:
 
 - **CV, AND**, the `mgm` package default. Only the tuning criterion changes, so this
   isolates the effect of the criterion.
-- **CV, OR**, cross-validation with the OR rule. This is the setting used to draw the
-  network figures in the originally submitted version of the manuscript, kept here so the
-  record is complete.
+- **CV, OR**, cross-validation with the OR rule, the setting of the network figures in the
+  first submitted version of the manuscript.
 
 The output is Table S10 of the Supplement: the verdict for each of the 34 country-networks
 under all three specifications.

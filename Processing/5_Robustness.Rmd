@@ -66,11 +66,11 @@ for (study_name in names(master_datasets)) {
 ## Montecarlo simulation
 
 ```{r}
-# Register the 16 cores
+# Register 12 cores; lower this to match your machine
 cl <- makeCluster(12)
 registerDoParallel(cl)
 
-# Ensure the seed is handled correctly for parallel processes
+# Seeds the main session only; it does not reach the parallel workers (see the README)
 set.seed(123)
 B <- 1000
 monte_carlo_results <- list()
@@ -95,15 +95,12 @@ for (name in names(Full_items_npn)) {
       
       iter_matrix <- data_matrix_npn[, c(sampled_cm, sampled_cb)]
       
-      # Estimate MGM.
-      # Tuning is EBIC with lambdaGam = 0.25, as everywhere else in the paper. The rule is
-      # OR rather than AND here, which is a deliberate choice for this check: the equal-item
-      # networks are built on half the items of the H0 networks, and the AND rule combined
-      # with a smaller item set prunes edges that the diagnostic needs in order to rank items
-      # at all. The quantities recorded below are a hub identity and a difference in mean
-      # Strength, neither of which enters a hypothesis test, so the looser rule is the
-      # conservative direction for a check whose job is to look for a pattern that is not
-      # there. Section 5.4 of the article states the setting.
+      # Estimate MGM. Tuning is EBIC with lambdaGam = 0.25, as everywhere else in the paper, but
+      # the rule is OR: the equal-item networks use half the items of the H0 networks, and with
+      # fewer items the AND rule prunes edges the diagnostic needs to rank items at all. The
+      # recorded quantities, a hub identity and a difference in mean Strength, enter no
+      # hypothesis test, and the looser rule is the conservative choice for a check that looks
+      # for a pattern and expects not to find it. Section 5.4 of the article states the setting.
       mgm_iter <- mgm::mgm(iter_matrix, type = rep("g", 2*k), level = rep(1, 2*k),
                            lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "OR", 
                            verbose = FALSE, pbar = FALSE)
@@ -237,22 +234,22 @@ ggsave(here("Output", "Robustness", "MC", "MC_Final_Hub_Probability.png"), width
 #### Distribution on the deltas of CM and CB items
 
 ```{r}
-# 1. Prepare the data: Order facets by the median Delta_Mean for a professional flow
+# 1. Order facets by the median Delta_Mean
 mc_data_ordered <- mc_data_clean %>%
   group_by(FacetTitle) %>%
   mutate(Median_Delta = median(Delta_Mean)) %>%
   ungroup() %>%
   mutate(FacetTitle = reorder(FacetTitle, Median_Delta))
 
-# 2. Build the Masterpiece Violin Plot
+# 2. Violin plot
 ggplot(mc_data_ordered, aes(x = "Simulations", y = Delta_Mean)) +
-  # The Zero Line (The Null Hypothesis reference)
+  # Zero line (null reference)
   geom_hline(yintercept = 0, color = "#E41A1C", linetype = "dashed", size = 1, alpha = 0.8) +
   
-  # The Violin: Using the Deep Purple from your CB palette
+  # Violin, in the deep purple of the CB palette
   geom_violin(fill = "#702963", color = "#1A1A1A", alpha = 0.7, size = 0.6) +
   
-  # The Boxplot inside for precise median/quartile tracking
+  # Boxplot inside, for the median and quartiles
   geom_boxplot(width = 0.15, fill = "white", color = "#1A1A1A", outlier.shape = NA, size = 0.6) +
   
   # Facet by Country/Study
@@ -265,22 +262,22 @@ ggplot(mc_data_ordered, aes(x = "Simulations", y = Delta_Mean)) +
     y = expression(paste(Delta, " Mean (Strength Centrality)"))
   ) +
   
-  # Apply your custom masterpiece theme
+  # Shared theme
   theme_masterpiece() +
   theme(
     # Clean up the X-axis since "Simulations" is redundant across facets
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank(),
     
-    # Ensure the Y-axis is crisp
+    # Y-axis text
     axis.title.y = element_text(face = "bold", size = 12),
     
-    # Formatting the facets to match your masterpiece style
+    # Facet strips in the shared style
     strip.background = element_rect(fill = "#EFEFEF", color = "#333333"),
     strip.text = element_text(face = "bold", size = 9)
   )
 
-# 3. Save with high resolution
+# 3. Save
 ggsave(here("Output", "Robustness", "MC", "MC_Final_Delta_Mean_Violin.png"), 
        width = 11, height = 8, dpi = 600, type = "cairo")
 ```
@@ -418,7 +415,7 @@ for (name in names(case_boots)) {
   plot_library[[study]][[hyp]][[country_clean]] <- p
 }
 
-# Now we assemble the final figures
+# Assemble the final figures
 
 for (study in names(plot_library)) {
   
@@ -427,8 +424,7 @@ for (study in names(plot_library)) {
     
     for (hyp in names(plot_library[[study]])) {
 
-      # Only the H1 and H2 panels are used (Figures S8, S9, S22, S23). The H0 panels were
-      # written and cited nowhere, so they are no longer produced.
+      # Only the H1 and H2 panels are produced (Figures S8, S9, S22, S23).
       if (hyp == "H0") next
 
       # Extract all country plots 
@@ -552,7 +548,7 @@ for (study_id in unique(cent_plot_data$Study)) {
     
     facet_wrap(~ CountryName, ncol = ncol_val, scales = "fixed") + 
     
-    # UPDATE 2: Clean, short labels
+    # Short labels
     scale_color_manual(values = hyp_colors, labels = c("H0", "H1", "H2")) +
     
     labs(
@@ -563,7 +559,7 @@ for (study_id in unique(cent_plot_data$Study)) {
     
     theme_masterpiece() +
     theme(
-      # UPDATE 1: Legend relocated to the bottom
+      # Legend at the bottom
       legend.position = "bottom",
       legend.title = element_text(face = "bold", size = 11),
       legend.text = element_text(size = 10),

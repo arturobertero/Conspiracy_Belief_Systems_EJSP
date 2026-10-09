@@ -5,12 +5,12 @@ output: html_document
 
 The analysis scripts write their output under names that describe what produced it
 (`H1_Study1_Composite_A.png`). The journal, the co-authors and anyone checking the paper
-against this repository need the opposite: names that match what the article calls things.
+against this repository need names that match what the article calls things.
 
 This script builds `Output/Submission/`, in which every file carries the name it has in the
-article or the Supplement. Nothing is recomputed here. Two tables are assembled rather than
-copied, because Tables S2, S5 and S8 each combine a reliability panel and a fit panel that
-the analysis scripts write as one master file across all three studies.
+article or the Supplement. Nothing is recomputed here. Tables S2, S5 and S8 are assembled,
+because each combines a reliability panel and a fit panel that the analysis scripts write as
+one master file across all three studies.
 
 Run it last, after scripts 2, 3, 4, 5, 6 and 7.
 
@@ -29,8 +29,8 @@ sub_dir <- here("Output", "Submission")
 if (dir.exists(sub_dir)) unlink(sub_dir, recursive = TRUE)
 dir.create(sub_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Every copy is checked. A silent failure here would ship a bundle with a figure missing,
-# which is exactly the class of error this script exists to prevent.
+# Every copy is checked, so a failed copy stops the script and a bundle never ships with a
+# figure missing.
 copied <- character(0)
 missing <- character(0)
 

@@ -3,13 +3,12 @@ title: "7 - Reporting checks"
 output: html_document
 ---
 
-This script exists for one reason: every number we put in the Results has to be re-derivable
-from the data without reading it off a figure. It recomputes the sample sizes, the EGA
-communities, the reliability and fit statistics with their intervals, and above all the
-bootstrapped difference tests on Strength that decide H1 and H2 in each country-network. It
-also re-estimates all the H1/H2 networks under cross-validation as a quick check on the tuning
-criterion; script 6 carries the full version of that check, with bootstraps and difference
-tests under two alternative specifications.
+This script re-derives every number in the Results from the data, so that none has to be read
+off a figure. It recomputes the sample sizes, the EGA communities, the reliability and fit
+statistics with their intervals, and the bootstrapped difference tests on Strength that decide
+H1 and H2 in each country-network. It also re-estimates all the H1/H2 networks under
+cross-validation as a quick check on the tuning criterion; script 6 carries the full version
+of that check, with bootstraps and difference tests under two alternative specifications.
 
 # Input
 
@@ -148,7 +147,7 @@ write.csv(ci_check, file.path(out_dir, "Check_Alpha_Fit_CIs.csv"), row.names = F
 # The summary node (CM in H1, CB in H2) is always the first column of the matrix.
 # I take three things per network: the rank of its point estimate in the bootnet sample
 # network, whether its 95% bootstrap CI sits entirely above or entirely below the CIs of all
-# the other nodes, and the same rank recomputed with the CV/OR settings used for the plots.
+# the other nodes, and the same rank recomputed under cross-validation and the OR rule.
 
 rank_from_boot <- function(boot_list, hyp) {
   map_dfr(names(boot_list), function(nm) {
@@ -222,14 +221,12 @@ write.csv(ranks_all, file.path(out_dir, "Check_Summary_Node_Ranks.csv"), row.nam
 # Bootstrapped difference tests on Strength
 
 ```{r}
-# This is the decision rule the paper applies to H1 and H2.
-#
-# Comparing point estimates ("the summary node has the highest Strength") is not a test, and
-# comparing two marginal bootstrap CIs is not one either: two nodes can differ reliably while
-# their intervals overlap, so a non-overlap rule is conservative in a direction we cannot
-# quantify. Epskamp, Borsboom & Fried (2018) recommend the bootstrapped difference test, which
-# is what we use: for every other node in the network, take the difference in Strength within
-# each bootstrap sample and read the 2.5th and 97.5th percentiles of that difference.
+# The decision rule the paper applies to H1 and H2: the bootstrapped difference test
+# recommended by Epskamp, Borsboom & Fried (2018). For every other node in the network, take
+# its difference in Strength from the summary node within each bootstrap sample and read the
+# 2.5th and 97.5th percentiles of that difference. Two nodes can differ reliably while their
+# marginal intervals overlap, so a non-overlap rule would be conservative by an amount we
+# cannot quantify.
 #
 # The summary node (CM in H1, CB in H2) is always the first column of the input matrix.
 #   supported   = the summary node is reliably MORE central than every other node

@@ -66,16 +66,15 @@ for (study_name in names(master_datasets)) {
 ## Network estimation and plotting
 
 ```{r}
-# ONE ESTIMATOR FOR THE WHOLE PAPER.
-# Every network in this paper, drawn or analysed, is estimated with mgm() under EBIC
-# (lambdaGam = 0.25) and the AND rule. These are exactly the settings bootnet(default = "mgm")
-# applies internally, so the pictures below show the same networks the Strength estimates,
-# the bootstrap intervals and the difference tests are computed on. Script 6 re-runs the
-# H1 and H2 analyses under cross-validation, with the AND and then the OR rule. Ranks are
-# identical in all 34 networks and verdicts in 32 of 34; the German and British H1 networks
-# move from falsified to inconclusive, which Section 5.5 reports.
-# The seed is kept for the layout algorithm rather than for the fit: EBIC selection is
-# deterministic, but qgraph's spring placement is not.
+# One estimator throughout the paper: every network, drawn or analysed, is fitted with mgm()
+# under EBIC (lambdaGam = 0.25) and the AND rule, the settings bootnet(default = "mgm") uses
+# internally. The networks drawn below are the ones the Strength estimates, the bootstrap
+# intervals and the difference tests are computed on. Script 6 re-runs H1 and H2 under
+# cross-validation, with the AND and then the OR rule: ranks are identical in all 34 networks
+# and verdicts in 32 of 34 (the German and British H1 networks move from falsified to
+# inconclusive, which Section 5.5 reports).
+# The seed is set for the layout algorithm: EBIC selection is deterministic, but qgraph's
+# spring placement is not.
 set.seed(123)
 
 # usual colors
@@ -183,11 +182,11 @@ if (length(study3_cmq_files) == 8) {
 ```{r}
 # mgm boots by country
 
-# NOTE ON THE ESTIMATOR. bootnet(default = "mgm") calls mgm() with lambdaSel = "EBIC"
-# (lambdaGam = 0.25) and ruleReg = "AND". Those are the settings the plotting loop above
-# uses, so the drawn networks and the bootstrapped Strength estimates are the same networks.
-# Script 6 repeats the whole H1/H2 analysis under cross-validation and the OR rule, the
-# mgm package default, and reports the verdicts side by side.
+# Estimator: bootnet(default = "mgm") calls mgm() with lambdaSel = "EBIC" (lambdaGam = 0.25)
+# and ruleReg = "AND", the settings of the plotting loop above, so the drawn networks and the
+# bootstrapped Strength estimates are the same networks. Script 6 repeats the whole H1/H2
+# analysis under cross-validation, with the AND and then the OR rule, and reports the
+# verdicts side by side.
 
 # # Set seed for exact reproducibility
 # set.seed(123)
